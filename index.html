@@ -85,8 +85,7 @@
         <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
             <h2 class="text-xl text-purple-300 font-bold mb-2">พูดคำนี้</h2>
             <div id="sp-word" class="text-6xl font-extrabold text-white mb-2">...</div>
-            <div id="sp-reading" class="text-2xl text-purple-400 font-medium mb-4 italic invisible">...</div>
-            <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full border border-yellow-500/30 mb-12">...</div>
+            <div id="sp-reading" class="text-2xl text-purple-400 font-medium mb-4 italic invisible">...</div> <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full border border-yellow-500/30 mb-12">...</div>
             <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 transition-all pointer-events-auto">
                 <div id="mic-icon" class="text-4xl">🎙️</div>
             </button>
@@ -113,21 +112,21 @@ const CFG = { gravity: 1.5, spawnRate: 110, eatDist: 100, mouthThresh: 0.04 };
 window.G = {
     playing: false, score: 0, qIdx: 0, items: [], 
     mouth: {x:0, y:0, open:false}, user: {name:'', number:''},
-    pendingItem: null, isListening: false, wrongCount: 0
+    pendingItem: null, isListening: false,
+    wrongCount: 0 // นับจำนวนครั้งที่พูดผิดในแต่ละข้อ
 };
 
-// ปรับโจทย์ตามไฟล์ล่าสุดและปรับคำอ่านตามคำขอ
 const QUESTIONS = [
     { q: "He ______ TV every evening.", c: "watches", w: ["watch", "watching"], m: "เขาดูทีวี (ทุกเย็น)", p: "วอช-เชส" },
-    { q: "She ______ her teeth twice a day.", c: "brushes", w: ["brush", "brushed"], m: "เธอแปรงฟัน (ทุกวัน)", p: "บรัช-เชส" },
-    { q: "Tom ______ his face in the morning.", c: "washes", w: ["wash", "washing"], m: "ต้อมล้างหน้า (ตอนเช้า)", p: "วอช-เชส" },
-    { q: "My dad ______ football on Sundays.", c: "plays", w: ["play", "played"], m: "พ่อเล่นบอล (ทุกอาทิตย์)", p: "เพลย์-สึ" },
-    { q: "She ______ to school by bus.", c: "goes", w: ["go", "going"], m: "เธอไปโรงเรียน (โดยรถเมล์)", p: "โกว-สึ" },
-    { q: "He ______ his homework at 5 PM.", c: "does", w: ["do", "doing"], m: "เขาทำการบ้าน (ตอน 5 โมง)", p: "ดัส" },
-    { q: "My sister ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "น้องสาวอ่านหนังสือ (ก่อนนอน)", p: "รีด-สึ" },
-    { q: "It ______ a lot in June.", c: "rains", w: ["rain", "raining"], m: "ฝนตกหนัก (ในเดือนมิถุนายน)", p: "เรน-สึ" },
-    { q: "My mom ______ delicious food.", c: "cooks", w: ["cook", "cooked"], m: "แม่ทำอาหารอร่อย", p: "คุ้ก-สึ" },
-    { q: "She ______ happy today.", c: "looks", w: ["look", "looking"], m: "เธอดูมีความสุขวันนี้", p: "ลุ้คส์" }
+    { q: "Look! She ______ now.", c: "is singing", w: ["sing", "sings"], m: "เธอกำลังร้องเพลง", p: "อิส-ซิงอิง" },
+    { q: "A cat ______ fish.", c: "eats", w: ["eat", "eating"], m: "แมวกินปลา (ปกติ)", p: "อีทส์" },
+    { q: "I ______ my homework now.", c: "am doing", w: ["do", "does"], m: "ฉันกำลังทำการบ้าน", p: "แอม-ดูอิง" },
+    { q: "She ______ to school every day.", c: "goes", w: ["go", "going"], m: "เธอไปโรงเรียน (ทุกวัน)", p: "โกวส์" },
+    { q: "They are______ football at the moment.", c: "playing", w: ["play", "plays"], m: "พวกเขากำลังเล่นบอล", p: "เพลย์อิง" },
+    { q: "My dad ______ a car.", c: "drives", w: ["drive", "driving"], m: "พ่อขับรถ (ปกติ)", p: "ไดรฟ์" },
+    { q: "Listen! The bird is______.", c: "singing", w: ["sing", "sings"], m: "นกกำลังร้องเพลง", p: "ซิงอิง" },
+    { q: "Mom is______ food in the kitchen now.", c: "cooking", w: ["cook", "cooks"], m: "แม่กำลังทำอาหาร", p: "คุ้กกิ้ง" },
+    { q: "She ______ happy today.", c: "looks", w: ["look", "looking"], m: "เธอมีความสุข", p: "ลุ้คส์" }
 ];
 
 let lastCameraFrame = null;
@@ -223,13 +222,13 @@ function spawnItem() {
 function handleEat(item, idx) {
     if (item.type === 'c') {
         G.items = []; G.pendingItem = item; G.playing = false; cancelAnimationFrame(animId);
-        G.score += 5; G.wrongCount = 0;
+        G.score += 5; G.wrongCount = 0; // รีเซ็ตตัวนับเมื่อเริ่มข้อใหม่
         showToast(`เลือกถูก! +5`, 'green');
         document.getElementById('screen-speech').classList.remove('hidden');
         document.getElementById('screen-speech').classList.add('flex');
         document.getElementById('sp-word').innerText = item.text;
         document.getElementById('sp-reading').innerText = `(${QUESTIONS[G.qIdx].p})`;
-        document.getElementById('sp-reading').classList.add('invisible');
+        document.getElementById('sp-reading').classList.add('invisible'); // ซ่อนคำอ่านไว้ก่อน
         document.getElementById('sp-meaning').innerText = QUESTIONS[G.qIdx].m;
         updateHUD(); resetMicUI();
     } else {
@@ -257,13 +256,16 @@ function startSpeechTask() {
     recognition.onresult = (e) => {
         const spoken = e.results[0][0].transcript.toLowerCase();
         const target = G.pendingItem.text.toLowerCase();
+        // เช็คคำตอบ
         if (spoken.includes(target) || spoken.slice(0,2) === target.slice(0,2)) {
             endSpeech(true);
         } else {
-            G.wrongCount++;
-            document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}"...`;
+            G.wrongCount++; // พูดผิดนับเพิ่ม 1
+            document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}" (ลองใหม่นะ)`;
+            // ถ้าผิดครบ 3 ครั้ง ให้แสดงคำอ่าน
             if (G.wrongCount >= 3) {
                 document.getElementById('sp-reading').classList.remove('invisible');
+                showToast(`ดูคำอ่านช่วยได้นะ!`, 'green');
             }
         }
     };
