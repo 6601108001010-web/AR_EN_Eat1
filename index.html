@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>AR English Eat - Present Simple Edition</title>
+    <title>AR English Eat - Flexible Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -16,8 +16,7 @@
         .btn-game:active { transform: translateY(2px); box-shadow: 0 2px 0 #581c87; }
         .mic-listening { animation: pulse 1.5s infinite; background: #ef4444 !important; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        #countdown { font-size: 8rem; text-shadow: 0 0 20px rgba(168, 85, 247, 0.8); color: white; font-weight: 900; }
-        .hint-animate { animation: bounce 1s infinite; }
+        .hint-bounce { animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     </style>
 </head>
@@ -51,69 +50,63 @@
 
         <div id="screen-rules" class="absolute inset-0 bg-[#0f172a]/95 z-[60] hidden flex flex-col justify-center items-center p-6">
             <div class="glass p-6 rounded-3xl w-full max-w-md space-y-6 border-purple-500/50 border-2 pointer-events-auto text-center">
-                <h2 class="text-2xl font-black text-purple-400">📜 กติกาและการให้คะแนน</h2>
-                <div class="text-left space-y-3 text-sm">
-                    <div class="bg-green-900/20 p-3 rounded-xl border border-green-500/30">
-                        <p>✅ <b>กินคำตอบถูก:</b> +5 คะแนน</p>
-                        <p>✅ <b>พูดออกเสียงถูก:</b> +5 คะแนน</p>
-                    </div>
-                    <div class="bg-red-900/20 p-3 rounded-xl border border-red-500/30">
-                        <p>❌ <b>กินคำตอบผิด:</b> -5 คะแนน</p>
-                        <p>❌ <b>กดข้ามคำศัพท์:</b> -2 คะแนน</p>
-                    </div>
-                    <p class="text-yellow-400 italic text-center text-[10px] mt-2">*หากพูดผิด 3 ครั้ง จะมีคำใบ้ปรากฏขึ้น</p>
+                <h2 class="text-2xl font-black text-purple-400 italic">📜 How to Play</h2>
+                <div class="text-left space-y-3 text-sm bg-black/30 p-4 rounded-xl">
+                    <p>✅ <b>Open Mouth:</b> เพื่อกินคำตอบที่ถูก</p>
+                    <p>✅ <b>Speak:</b> ออกเสียงให้ชัดเจน (เน้นเสียงท้าย)</p>
+                    <p>💡 <b>Hint:</b> ถ้าพูดผิด 3 ครั้ง จะมีตัวช่วย!</p>
                 </div>
-                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">พร้อมแล้ว!</button>
+                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">เข้าสู่เกม</button>
             </div>
         </div>
 
-        <div id="countdown-layer" class="absolute inset-0 z-[70] hidden flex items-center justify-center bg-black/40">
-            <div id="countdown">3</div>
+        <div id="countdown-layer" class="absolute inset-0 z-[70] hidden flex items-center justify-center bg-black/60">
+            <div id="countdown" class="text-9xl font-black italic text-white shadow-2xl">3</div>
         </div>
 
-        <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
+        <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
             <h2 class="text-xl text-purple-300 font-bold mb-2 uppercase italic tracking-widest">Speak the word</h2>
-            <div id="sp-word" class="text-6xl font-extrabold text-white mb-2 tracking-tight">...</div>
+            <div id="sp-word" class="text-7xl font-extrabold text-white mb-2 tracking-tight">...</div>
             
-            <div id="sp-reading" class="text-xl text-purple-400 font-bold mb-4 italic invisible bg-purple-900/30 px-4 py-2 rounded-lg border border-purple-500/30">...</div>
+            <div id="sp-reading" class="text-xl text-white font-bold mb-4 italic invisible bg-purple-600 px-6 py-2 rounded-lg shadow-lg">...</div>
             
-            <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full mb-12">...</div>
+            <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full mb-12 border border-yellow-500/30">...</div>
             
-            <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 pointer-events-auto shadow-2xl">
-                <div id="mic-icon" class="text-4xl">🎙️</div>
+            <button id="mic-btn" onclick="toggleListening()" class="w-28 h-28 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-300 pointer-events-auto shadow-2xl scale-110">
+                <div id="mic-icon" class="text-5xl">🎙️</div>
             </button>
-            <p id="sp-status" class="mt-8 text-white/70">แตะไมค์แล้วพูดคำศัพท์</p>
-            <button onclick="endSpeech(false)" class="mt-12 text-sm text-gray-400 underline pointer-events-auto">ข้ามคำนี้ (-2 คะแนน)</button>
+            <p id="sp-status" class="mt-8 text-white/70 font-medium">แตะไมค์แล้วพูดคำศัพท์</p>
+            <button onclick="endSpeech(false)" class="mt-12 text-sm text-gray-500 underline pointer-events-auto">ข้ามคำนี้ (-2 คะแนน)</button>
         </div>
 
         <div id="screen-end" class="absolute inset-0 bg-[#0f172a] z-50 hidden flex flex-col justify-center items-center p-6 text-center">
-            <h1 class="text-5xl font-black text-white mb-4 uppercase">จบเกม!</h1>
-            <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400 mb-8 w-44 h-44 flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.3)]">
-                <div><div class="text-xs text-gray-400 font-bold uppercase tracking-widest">Final Score</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
+            <h1 class="text-5xl font-black text-white mb-4">จบเกม!</h1>
+            <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400 mb-8 w-48 h-48 flex items-center justify-center">
+                <div><div class="text-xs text-gray-400 font-bold uppercase">Final Score</div><div id="final-score" class="text-6xl font-black text-yellow-400">0</div></div>
             </div>
-            <p id="save-status" class="text-blue-400 animate-pulse mb-6 italic">กำลังบันทึกคะแนน...</p>
-            <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto shadow-xl hover:bg-purple-500 transition-colors">เล่นอีกครั้ง</button>
+            <p id="save-status" class="text-blue-400 animate-pulse mb-6">กำลังบันทึกคะแนน...</p>
+            <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto shadow-xl">เล่นอีกครั้ง</button>
         </div>
     </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
+const API_URL = "YOUR_SCRIPT_URL_HERE";
 
-// โจทย์ 10 ข้อ ปรับปรุงคำอ่านเน้นเสียงท้าย (Final Sound)
+// โจทย์ 10 ข้อ ปรับปรุงให้พูดง่ายขึ้นและเน้นเสียงท้าย
 const QUESTIONS = [
-    { q: "A boy ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "เด็กชายอ่านหนังสือ", p: "รีดส์ (เน้นเสียง สึ ท้ายคำ)" },
-    { q: "The cats ______ milk every day.", c: "drink", w: ["drinks", "drinking"], m: "แมว(หลายตัว)ดื่มนม", p: "ดริงก์ (เสียง กึ เบาๆ)" },
+    { q: "A boy ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "เด็กชายอ่านหนังสือ", p: "รีดส์ (ออกเสียง สึ ท้ายคำ)" },
+    { q: "A cat ______ on the sofa.", c: "sleeps", w: ["sleep", "sleeping"], m: "แมวนอนบนโซฟา", p: "สลีปส์ (ออกเสียง สึ ท้ายคำ)" },
     { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "พวกนกบินบนท้องฟ้า", p: "ฟลาย" },
-    { q: "He ______ coffee every morning.", c: "drinks", w: ["drink", "drinking"], m: "เขาดื่มกาแฟทุกเช้า", p: "ดริงก์ส (เน้นเสียง สึ ท้ายคำ)" },
+    { q: "He ______ to the radio.", c: "listens", w: ["listen", "listening"], m: "เขาฟังวิทยุ", p: "ลิสเซินส์ (ออกเสียง สึ ท้ายคำ)" },
     { q: "We ______ to the park on Sundays.", c: "walk", w: ["walks", "walking"], m: "พวกเราเดินไปสวนสาธารณะ", p: "วอล์ค (เสียง คือ เบาๆ)" },
-    { q: "A rabbit ______ very fast.", c: "runs", w: ["run", "running"], m: "กระต่ายวิ่งเร็วมาก", p: "รันส์ (เน้นเสียง สึ ท้ายคำ)" },
+    { q: "A rabbit ______ very fast.", c: "runs", w: ["run", "running"], m: "กระต่ายวิ่งเร็วมาก", p: "รันส์ (ออกเสียง สึ ท้ายคำ)" },
     { q: "Teachers ______ the students.", c: "help", w: ["helps", "helping"], m: "ครูช่วยเหลือนักเรียน", p: "เฮลป์ (เสียง พึ เบาๆ)" },
-    { q: "She ______ a beautiful song.", c: "sings", w: ["sing", "singing"], m: "เธอร้องเพลงไพเราะ", p: "ซิงส์ (เน้นเสียง สึ ท้ายคำ)" },
-    { q: "Water ______ at 100 degrees.", c: "boils", w: ["boil", "boiling"], m: "น้ำเดือดที่ 100 องศา", p: "บอยล์ส (เน้นเสียง สึ ท้ายคำ)" },
+    { q: "She ______ a beautiful song.", c: "sings", w: ["sing", "singing"], m: "เธอร้องเพลงไพเราะ", p: "ซิงส์ (ออกเสียง สึ ท้ายคำ)" },
+    { q: "Water ______ at 100 degrees.", c: "boils", w: ["boil", "boiling"], m: "น้ำเดือดที่ 100 องศา", p: "บอยล์ส (ออกเสียง สึ ท้ายคำ)" },
     { q: "You ______ very kind today.", c: "look", w: ["looks", "looking"], m: "คุณดูใจดีจังวันนี้", p: "ลุ้ค (เสียง คือ เบาๆ)" }
 ];
 
-const CFG = { gravity: 1.7, spawnRate: 110, eatDist: 90, mouthThresh: 0.05 };
+const CFG = { gravity: 1.6, spawnRate: 110, eatDist: 95, mouthThresh: 0.05 };
 window.G = {
     playing: false, score: 0, qIdx: 0, items: [], 
     mouth: {x:0, y:0, open:false}, user: {name:'', number:''},
@@ -121,9 +114,9 @@ window.G = {
     wrongCount: 0, passedWords: [], skippedWords: []
 };
 
-// --- Audio Feedback ---
+// --- เสียงเอฟเฟกต์ ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(freq, type = 'sine', vol = 0.15) {
+function playSound(freq, type = 'sine', vol = 0.1) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
@@ -133,7 +126,6 @@ function playSound(freq, type = 'sine', vol = 0.15) {
     osc.start(); osc.stop(audioCtx.currentTime + 0.2);
 }
 
-// --- Data Submission ---
 async function sendData() {
     const payload = {
         name: G.user.name, number: G.user.number,
@@ -215,7 +207,6 @@ function gameLoop() {
     if (lastCameraFrame) ctx.drawImage(lastCameraFrame, 0, 0, w, h);
     ctx.restore();
 
-    // Visual mouth guide
     ctx.beginPath(); 
     ctx.arc(G.mouth.x, G.mouth.y, G.mouth.open ? 35 : 15, 0, Math.PI * 2);
     ctx.lineWidth = 5; ctx.strokeStyle = G.mouth.open ? '#4ade80' : '#f472b6'; 
@@ -254,68 +245,70 @@ function spawnItem() {
 
 function handleEat(item, idx) {
     if (item.type === 'c') {
-        playSound(660, 'sine', 0.2);
+        playSound(660);
         G.items = []; G.pendingItem = item; G.playing = false; cancelAnimationFrame(animId);
-        G.score += 5; G.wrongCount = 0; // Reset count for new word
+        G.score += 5; 
+        G.wrongCount = 0; // รีเซ็ตตัวนับการพูดผิดทุกครั้งที่กินคำใหม่
         
-        const speechScr = document.getElementById('screen-speech');
-        const readingEl = document.getElementById('sp-reading');
-        
-        speechScr.classList.replace('hidden', 'flex');
-        readingEl.classList.add('invisible'); // Hide hint initially
-        readingEl.innerText = QUESTIONS[G.qIdx].p;
-        
+        document.getElementById('screen-speech').classList.replace('hidden', 'flex');
         document.getElementById('sp-word').innerText = item.text;
         document.getElementById('sp-meaning').innerText = QUESTIONS[G.qIdx].m;
         
+        // ซ่อนคำอ่านไว้ก่อน จนกว่าจะผิดครบ 3 ครั้ง
+        const hintEl = document.getElementById('sp-reading');
+        hintEl.classList.add('invisible');
+        hintEl.classList.remove('hint-bounce');
+        hintEl.innerText = QUESTIONS[G.qIdx].p;
+        
         updateHUD(); resetMicUI();
     } else {
-        playSound(220, 'square', 0.1);
+        playSound(220, 'square');
         G.items.splice(idx, 1); 
         G.score = Math.max(0, G.score - 5); updateHUD();
-        showToast(`กินผิดนะ! -5 คะแนน`, 'red');
+        showToast(`กินผิด! -5`, 'red');
     }
 }
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 
-function toggleListening() { 
-    if (G.isListening) { recognition.stop(); return; } 
-    startSpeechTask(); 
-}
+function toggleListening() { if (G.isListening) { recognition.stop(); return; } startSpeechTask(); }
 
 function startSpeechTask() {
     G.isListening = true;
     document.getElementById('mic-btn').classList.add('mic-listening');
-    document.getElementById('sp-status').innerText = "ฟังอยู่นะ... ออกเสียงให้ชัดเจน";
+    document.getElementById('sp-status').innerText = "กำลังฟัง...";
     
     recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3; // รับคำที่เป็นไปได้ 3 แบบเพื่อความยืดหยุ่น
+
     recognition.onresult = (e) => {
-        const spokenRaw = e.results[0][0].transcript.toLowerCase();
-        const spokenClean = spokenRaw.replace(/[^a-z]/g, '');
         const target = G.pendingItem.text.toLowerCase();
+        let results = Array.from(e.results[0]).map(res => res.transcript.toLowerCase().replace(/[^a-z]/g, ''));
         
-        // Flexible matching logic
-        const isMatch = spokenClean.includes(target) || 
-                        (target.length > 3 && spokenClean.includes(target.slice(0, -1)));
+        // ยืดหยุ่น: ถ้าคำที่ระบบได้ยิน "มีส่วนหนึ่ง" ที่เหมือนคำตอบ (Fuzzy match)
+        const isMatch = results.some(spoken => 
+            spoken.includes(target) || 
+            (target.length > 3 && spoken.includes(target.slice(0, -1))) ||
+            (target.endsWith('s') && spoken.endsWith('s')) // ถ้าเป้าหมายลงท้ายด้วย s แล้วพูดมี s ก็หยวนให้
+        );
 
         if (isMatch) {
-            playSound(880, 'sine', 0.2);
+            playSound(880);
             endSpeech(true);
         } else {
-            playSound(330, 'triangle', 0.1);
+            playSound(330, 'triangle');
             G.wrongCount++;
             
-            // Check if wrong 3 times
             if (G.wrongCount >= 3) {
                 const hint = document.getElementById('sp-reading');
                 hint.classList.remove('invisible');
-                hint.classList.add('hint-animate');
-                document.getElementById('sp-status').innerText = "ลองดูคำใบ้สีม่วงด้านบน!";
+                hint.classList.add('hint-bounce');
+                document.getElementById('sp-status').innerText = "ลองอ่านตามตัวช่วยสีม่วง!";
             } else {
-                document.getElementById('sp-status').innerText = `ระบบได้ยินว่า "${spokenRaw}"`;
+                document.getElementById('sp-status').innerText = `ลองอีกครั้ง! (ผิดไป ${G.wrongCount} ครั้ง)`;
             }
         }
     };
@@ -326,30 +319,16 @@ function startSpeechTask() {
 function resetMicUI() { 
     G.isListening = false; 
     document.getElementById('mic-btn').classList.remove('mic-listening'); 
-    if (!G.playing && !document.getElementById('screen-speech').classList.contains('hidden')) {
-        if (G.wrongCount < 3) document.getElementById('sp-status').innerText = "แตะไมค์แล้วลองอีกครั้ง";
-    }
+    if (!G.playing) document.getElementById('sp-status').innerText = "แตะไมค์แล้วลองอีกครั้ง";
 }
 
 function endSpeech(success) {
     document.getElementById('screen-speech').classList.replace('flex', 'hidden');
-    if (success) { 
-        G.score += 5; 
-        G.passedWords.push(G.pendingItem.text); 
-        showToast(`Correct! +5 คะแนน`, 'green'); 
-    } else { 
-        G.score = Math.max(0, G.score - 2); 
-        G.skippedWords.push(G.pendingItem.text); 
-        showToast(`ข้ามไป -2 คะแนน`, 'red'); 
-    }
+    if (success) { G.score += 5; G.passedWords.push(G.pendingItem.text); showToast(`Correct! +5`, 'green'); } 
+    else { G.score = Math.max(0, G.score - 2); G.skippedWords.push(G.pendingItem.text); showToast(`Skipped -2`, 'red'); }
     
-    if (++G.qIdx >= QUESTIONS.length) {
-        finishGame();
-    } else {
-        G.playing = true; 
-        loadLevel(); 
-        gameLoop(); 
-    }
+    if (++G.qIdx >= QUESTIONS.length) finishGame();
+    else { G.playing = true; loadLevel(); gameLoop(); }
 }
 
 function finishGame() {
@@ -363,9 +342,7 @@ function loadLevel() {
     document.getElementById('question-text').innerText = `${G.qIdx + 1}. ${QUESTIONS[G.qIdx].q}`; 
     updateHUD(); 
 }
-
 function updateHUD() { document.getElementById('score-box').innerText = G.score; }
-
 function showToast(msg, c) {
     const t = document.getElementById('toast');
     t.innerText = msg; t.className = `self-center glass px-8 py-3 rounded-full text-base font-bold ${c === 'green' ? 'text-green-400' : 'text-red-400'}`;
