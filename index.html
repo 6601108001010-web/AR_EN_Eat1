@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>AR English Eat - Multi-Skills Edition</title>
+    <title>AR English Eat - Skill Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -28,7 +28,7 @@
         
         <div id="quick-loader" class="absolute z-20 flex flex-col items-center justify-center pointer-events-none hidden">
             <span class="loader mb-2"></span>
-            <p id="loader-text" class="text-white text-xs bg-black/50 px-3 py-1 rounded-full">กำลังโหลดโจทย์จากคลัง...</p>
+            <p id="loader-text" class="text-white text-xs bg-black/50 px-3 py-1 rounded-full">กำลังโหลดข้อมูล...</p>
         </div>
 
         <div id="ui-layer" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
@@ -47,25 +47,24 @@
         <div id="screen-login" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col justify-center items-center p-6 text-center">
             <div class="mb-8">
                 <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">AR English Eat</h1>
-                <p class="text-gray-400 text-sm mt-1">Skills Tracker Mode</p>
+                <p class="text-gray-400 text-sm mt-1">บันทึกผลการเรียนรู้อัตโนมัติ</p>
             </div>
             <div class="glass p-8 rounded-3xl w-full max-w-sm space-y-4 shadow-2xl pointer-events-auto">
-                <input type="text" id="inp-name" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-white" placeholder="ชื่อเล่น">
-                <input type="number" id="inp-num" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-white" placeholder="เลขที่">
-                <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เริ่มเล่น</button>
+                <input type="text" id="inp-name" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-white focus:border-purple-500 outline-none" placeholder="ชื่อเล่น">
+                <input type="number" id="inp-num" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-white focus:border-purple-500 outline-none" placeholder="เลขที่">
+                <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เข้าสู่ระบบ</button>
             </div>
         </div>
 
-        <div id="screen-rules" class="absolute inset-0 bg-[#0f172a]/95 z-[60] hidden flex flex-col justify-center items-center p-6">
-            <div class="glass p-6 rounded-3xl w-full max-w-md space-y-6 border-purple-500/50 border-2 pointer-events-auto text-center">
+        <div id="screen-rules" class="absolute inset-0 bg-[#0f172a]/95 z-[60] hidden flex flex-col justify-center items-center p-6 text-center">
+            <div class="glass p-6 rounded-3xl w-full max-w-md space-y-6 border-purple-500/50 border-2 pointer-events-auto">
                 <h2 class="text-2xl font-black text-purple-400">📜 กติกาและการบันทึก</h2>
                 <div class="text-left space-y-3 text-sm">
-                    <p>✅ <b>เลือกถูก:</b> อ้าปากกินคำตอบ (+5)</p>
-                    <p>✅ <b>พูดถูก:</b> รับโบนัสทักษะการอ่าน (+5)</p>
-                    <p>❌ <b>กดข้าม:</b> ระบบจะบันทึกว่ายังอ่านไม่ได้ (-2)</p>
-                    <p class="text-yellow-400">💡 คำอ่านจะปรากฏเมื่อลองพูดผิดครบ 3 ครั้ง</p>
+                    <p>👄 <b>วิธีเล่น:</b> อ้าปากกินคำตอบที่ถูกต้อง</p>
+                    <p>🎙️ <b>การพูด:</b> ระบบจะบันทึกว่าคำไหน "ผ่าน" หรือ "ข้าม"</p>
+                    <p class="text-yellow-400 italic">💡 พยายามพูดให้ถูก ถ้าผิดครบ 3 ครั้งจะมีตัวช่วย!</p>
                 </div>
-                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">เข้าสู่เกม!</button>
+                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">รับทราบ เริ่มเลย!</button>
             </div>
         </div>
 
@@ -83,42 +82,45 @@
 
         <div id="screen-end" class="absolute inset-0 bg-[#0f172a] z-50 hidden flex flex-col justify-center items-center p-6 text-center">
             <h1 class="text-5xl font-black text-white mb-2">จบเกม!</h1>
-            <p id="sending-status" class="text-blue-400 animate-pulse mb-4">กำลังบันทึกคะแนนและทักษะลง Google Sheet...</p>
+            <p id="save-status" class="text-blue-400 animate-pulse mb-6">กำลังบันทึกคะแนนลง Google Sheet...</p>
             <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400/50 mb-8 w-44 h-44 flex items-center justify-center">
-                <div><div class="text-xs text-gray-400">TOTAL SCORE</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
+                <div><div class="text-xs text-gray-400">SCORE</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
             </div>
             <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto">🔄 เล่นอีกครั้ง</button>
         </div>
     </div>
 
 <script>
-// --- ส่วนการตั้งค่าเชื่อมต่อ Google Sheet ---
-const SHEET_API_URL = "วาง_URL_เว็บแอป_APPS_SCRIPT_ที่นี่"; 
+// --- เชื่อมต่อ Google Sheet API ---
+const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
 
-// --- เกมเซตติ้ง ---
 const CFG = { gravity: 1.5, spawnRate: 110, eatDist: 100, mouthThresh: 0.04 };
 window.G = {
     playing: false, score: 0, qIdx: 0, items: [], 
     mouth: {x:0, y:0, open:false}, user: {name:'', number:''},
-    pendingItem: null, isListening: false, wrongCount: 0,
-    passedWords: [], skippedWords: []
+    pendingItem: null, isListening: false, 
+    wrongCount: 0, passedWords: [], skippedWords: []
 };
 let QUESTIONS = [];
 
-// โหลดโจทย์จาก Sheet
-async function loadQuestions() {
+// ฟังก์ชันดึงโจทย์
+async function fetchQuestions() {
     try {
-        const res = await fetch(SHEET_API_URL);
+        const res = await fetch(API_URL);
         const data = await res.json();
-        QUESTIONS = data.map(i => ({
-            q: i.question, c: i.correct, w: String(i.wrong).split(','), m: i.meaning, p: i.reading
+        QUESTIONS = data.map(item => ({
+            q: item.question, 
+            c: item.correct, 
+            w: String(item.wrong).split(','), 
+            m: item.meaning, 
+            p: item.reading
         }));
-    } catch(e) { 
-        alert("https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec");
-    }
+        console.log("โจทย์พร้อมใช้งาน");
+    } catch(e) { console.error("โหลดโจทย์ล้มเหลว", e); }
 }
 
-async function sendScoreToSheet() {
+// ฟังก์ชันส่งคะแนน
+async function sendData() {
     const payload = {
         name: G.user.name,
         number: G.user.number,
@@ -127,22 +129,23 @@ async function sendScoreToSheet() {
         score: G.score
     };
     try {
-        await fetch(SHEET_API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        document.getElementById('sending-status').innerText = "✅ บันทึกข้อมูลสำเร็จ!";
-        document.getElementById('sending-status').classList.replace('text-blue-400', 'text-green-400');
-    } catch(e) {
-        document.getElementById('sending-status').innerText = "❌ บันทึกไม่สำเร็จ";
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        document.getElementById('save-status').innerText = "✅ บันทึกข้อมูลเรียบร้อย!";
+        document.getElementById('save-status').className = "text-green-400 mb-6";
+    } catch(e) { 
+        document.getElementById('save-status').innerText = "❌ บันทึกไม่สำเร็จ";
+        document.getElementById('save-status').className = "text-red-400 mb-6";
     }
 }
 
-// --- โลจิกกล้องและเกม (เหมือนเดิมแต่เพิ่มการบันทึก) ---
+// --- เกม AR ---
 let lastCameraFrame = null, camReady = false, animId = null;
 const ctx = document.getElementById('output-canvas').getContext('2d');
 const videoElement = document.getElementById('input_video');
 
 function showRules() {
     const name = document.getElementById('inp-name').value.trim();
-    if (!name || QUESTIONS.length === 0) return alert("กรุณากรอกชื่อ หรือรอโหลดโจทย์สักครู่");
+    if (!name || QUESTIONS.length === 0) return alert("กรุณารอโหลดข้อมูล หรือกรอกชื่อให้ครบ");
     G.user = { name, number: document.getElementById('inp-num').value.trim() };
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-rules').classList.remove('hidden');
@@ -184,13 +187,13 @@ function realStart() {
 function gameLoop() {
     if (!G.playing) return;
     const w = ctx.canvas.width = window.innerWidth, h = ctx.canvas.height = window.innerHeight;
-    ctx.save();
-    ctx.clearRect(0, 0, w, h);
+    ctx.save(); ctx.clearRect(0, 0, w, h);
     if (lastCameraFrame) { ctx.translate(w, 0); ctx.scale(-1, 1); ctx.drawImage(lastCameraFrame, 0, 0, w, h); }
     ctx.restore();
     ctx.beginPath(); ctx.arc(G.mouth.x, G.mouth.y, G.mouth.open ? 40 : 20, 0, Math.PI * 2);
     ctx.lineWidth = 4; ctx.strokeStyle = G.mouth.open ? '#4ade80' : '#f472b6'; ctx.stroke();
     if (Math.random() * 1000 < (1000 / CFG.spawnRate)) spawnItem();
+    ctx.font = "bold 26px 'Prompt'"; ctx.textAlign = "center";
     for (let i = G.items.length - 1; i >= 0; i--) {
         let it = G.items[i]; it.y += it.vy; it.x += it.vx;
         const tw = ctx.measureText(it.text).width + 30;
@@ -268,7 +271,7 @@ function finishGame() {
     G.playing = false; cancelAnimationFrame(animId);
     document.getElementById('screen-end').classList.replace('hidden', 'flex');
     document.getElementById('final-score').innerText = G.score;
-    sendScoreToSheet();
+    sendData();
 }
 
 function loadLevel() { document.getElementById('question-text').innerText = `${G.qIdx + 1}. ${QUESTIONS[G.qIdx].q}`; updateHUD(); }
@@ -279,8 +282,8 @@ function showToast(msg, c) {
     t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 1500);
 }
 
-// เริ่มต้นโหลดข้อมูล
-loadQuestions();
+// เริ่มโหลดโจทย์ทันทีที่เปิดเว็บ
+fetchQuestions();
 </script>
 </body>
 </html>
