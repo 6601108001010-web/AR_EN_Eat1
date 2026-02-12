@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>AR English Eat - Skill Tracker</title>
+    <title>AR English Eat - Multi-Skills</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -28,7 +28,7 @@
         
         <div id="quick-loader" class="absolute z-20 flex flex-col items-center justify-center pointer-events-none hidden">
             <span class="loader mb-2"></span>
-            <p id="loader-text" class="text-white text-xs bg-black/50 px-3 py-1 rounded-full">กำลังโหลดกล้อง AR...</p>
+            <p id="loader-text" class="text-white text-xs bg-black/50 px-3 py-1 rounded-full">กำลังโหลดระบบ AR...</p>
         </div>
 
         <div id="ui-layer" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
@@ -36,7 +36,7 @@
                 <div class="flex justify-between items-center px-1">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg" id="score-box">0</div>
-                        <div class="text-xs text-gray-300"><div class="font-bold text-white">SCORE</div><div id="player-label">Guest</div></div>
+                        <div class="text-xs text-gray-300"><div class="font-bold text-white uppercase" id="player-label">Player</div></div>
                     </div>
                 </div>
                 <div id="question-text" class="text-center text-yellow-300 text-lg md:text-xl font-bold py-1 bg-black/20 rounded-lg">...</div>
@@ -47,24 +47,24 @@
         <div id="screen-login" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col justify-center items-center p-6 text-center">
             <div class="mb-8">
                 <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">AR English Eat</h1>
-                <p class="text-gray-400 text-sm mt-1">Skills Tracking Online</p>
+                <p class="text-gray-400 text-sm mt-1">Skills Tracker Online</p>
             </div>
-            <div class="glass p-8 rounded-3xl w-full max-w-sm space-y-4 shadow-2xl pointer-events-auto">
+            <div class="glass p-8 rounded-3xl w-full max-w-sm space-y-4 pointer-events-auto">
                 <input type="text" id="inp-name" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="ชื่อเล่น">
                 <input type="number" id="inp-num" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="เลขที่">
-                <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เข้าสู่เกม</button>
+                <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เริ่มเล่น</button>
             </div>
         </div>
 
         <div id="screen-rules" class="absolute inset-0 bg-[#0f172a]/95 z-[60] hidden flex flex-col justify-center items-center p-6 text-center">
             <div class="glass p-6 rounded-3xl w-full max-w-md space-y-6 border-purple-500/50 border-2 pointer-events-auto">
-                <h2 class="text-2xl font-black text-purple-400 uppercase">How to play</h2>
+                <h2 class="text-2xl font-black text-purple-400">📜 วิธีเล่น</h2>
                 <div class="text-left space-y-3 text-sm">
                     <p>👄 <b>Eat:</b> อ้าปากกินคำตอบที่ถูกต้อง</p>
                     <p>🎙️ <b>Speak:</b> ออกเสียงให้ถูกเพื่อผ่านด่าน</p>
-                    <p class="text-yellow-400 italic">💡 ผิด 3 ครั้งจะขึ้นคำอ่านให้ดู!</p>
+                    <p class="text-yellow-400 italic">💡 พยายามพูดให้ถูก ถ้าผิดครบ 3 ครั้งจะมีคำอ่านช่วย!</p>
                 </div>
-                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">START GAME</button>
+                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">START!</button>
             </div>
         </div>
 
@@ -77,27 +77,35 @@
                 <div id="mic-icon" class="text-4xl">🎙️</div>
             </button>
             <p id="sp-status" class="mt-8 text-white/70">กดไมค์แล้วพูด</p>
-            <button onclick="endSpeech(false)" class="mt-12 text-sm text-gray-400 underline pointer-events-auto">Skip word (-2)</button>
+            <button onclick="endSpeech(false)" class="mt-12 text-sm text-gray-400 underline pointer-events-auto">ข้ามคำนี้ (-2)</button>
         </div>
 
         <div id="screen-end" class="absolute inset-0 bg-[#0f172a] z-50 hidden flex flex-col justify-center items-center p-6 text-center">
-            <h1 class="text-5xl font-black text-white mb-2">Game Over!</h1>
-            <p id="save-status" class="text-blue-400 animate-pulse mb-6">กำลังส่งคะแนนไปที่ Google Sheet...</p>
+            <h1 class="text-5xl font-black text-white mb-2">จบเกม!</h1>
+            <p id="save-status" class="text-blue-400 animate-pulse mb-6">กำลังบันทึกคะแนนลง Google Sheet...</p>
             <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400/50 mb-8 w-44 h-44 flex items-center justify-center">
-                <div><div class="text-xs text-gray-400">FINAL SCORE</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
+                <div><div class="text-xs text-gray-400">TOTAL SCORE</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
             </div>
             <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto">🔄 Replay</button>
         </div>
     </div>
 
 <script>
-// URL ของคุณครูที่ส่งมาให้
+// --- ส่วนการตั้งค่าเชื่อมต่อ ---
 const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
 
-// โจทย์สำรองป้องกันหน้าจอค้างถ้าโหลด Sheet ไม่ติด
+// --- รายการโจทย์ 10 ข้อที่ดึงมาจากโค้ดเดิม ---
 let QUESTIONS = [
     { q: "He ______ TV every evening.", c: "watches", w: ["watch", "watching"], m: "เขาดูทีวี (ทุกเย็น)", p: "วอช-เชส" },
-    { q: "Look! She is ______ now.", c: "singing", w: ["sing", "sings"], m: "เธอกำลังร้องเพลง", p: "ซิงอิง" }
+    { q: "Look! She is ______ now.", c: "singing", w: ["sing", "sings"], m: "เธอกำลังร้องเพลง", p: "ซิงอิง" },
+    { q: "A cat ______ fish.", c: "eats", w: ["eat", "eating"], m: "แมวกินปลา", p: "อีทส์" },
+    { q: "I am ______ my homework.", c: "doing", w: ["do", "does"], m: "กำลังทำการบ้าน", p: "ดูอิง" },
+    { q: "She ______ to school every day.", c: "goes", w: ["go", "going"], m: "ไปโรงเรียนทุกวัน", p: "โกวส์" },
+    { q: "They are ______ football.", c: "playing", w: ["play", "plays"], m: "กำลังเล่นบอล", p: "เพลย์อิง" },
+    { q: "My dad ______ a car.", c: "drives", w: ["drive", "driving"], m: "พ่อขับรถ", p: "ไดรฟ์" },
+    { q: "Listen! The bird is ______. ", c: "singing", w: ["sing", "sings"], m: "นกกำลังร้องเพลง", p: "ซิงอิง" },
+    { q: "Mom is ______ food.", c: "cooking", w: ["cook", "cooks"], m: "แม่กำลังทำอาหาร", p: "คุ้กกิ้ง" },
+    { q: "She ______ happy today.", c: "looks", w: ["look", "looking"], m: "เธอมีอาการมีความสุข", p: "ลุ้คส์" }
 ];
 
 const CFG = { gravity: 1.5, spawnRate: 110, eatDist: 100, mouthThresh: 0.04 };
@@ -108,16 +116,18 @@ window.G = {
     wrongCount: 0, passedWords: [], skippedWords: []
 };
 
+// พยายามโหลดโจทย์จาก Google Sheets
 async function fetchQuestions() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
         if (data && data.length > 0) {
             QUESTIONS = data.map(i => ({
-                q: i.question, c: i.correct, w: String(i.wrong).split(','), m: i.meaning, p: i.reading
+                q: i.question, c: i.correct, w: String(i.wrong).split(',').map(s=>s.trim()), m: i.meaning, p: i.reading
             }));
+            console.log("Updated questions from Sheets");
         }
-    } catch(e) { console.log("Using local backup questions"); }
+    } catch(e) { console.log("Using built-in questions"); }
 }
 
 async function sendData() {
@@ -130,15 +140,15 @@ async function sendData() {
     };
     try {
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        document.getElementById('save-status').innerText = "✅ บันทึกคะแนนสำเร็จ!";
-        document.getElementById('save-status').className = "text-green-400 mb-6";
+        document.getElementById('save-status').innerText = "✅ บันทึกข้อมูลลง Sheet สำเร็จ!";
+        document.getElementById('save-status').classList.replace('text-blue-400', 'text-green-400');
     } catch(e) { 
         document.getElementById('save-status').innerText = "❌ บันทึกไม่สำเร็จ";
         document.getElementById('save-status').className = "text-red-400 mb-6";
     }
 }
 
-// --- AR Engine ---
+// --- AR Core ---
 let lastCameraFrame = null, camReady = false, animId = null;
 const ctx = document.getElementById('output-canvas').getContext('2d');
 const videoElement = document.getElementById('input_video');
@@ -228,7 +238,7 @@ function handleEat(item, idx) {
         updateHUD(); resetMicUI();
     } else {
         G.items.splice(idx, 1); G.score = Math.max(0, G.score - 5); updateHUD();
-        showToast(`ผิด! -5`, 'red');
+        showToast(`เลือกผิด! -5`, 'red');
     }
 }
 
