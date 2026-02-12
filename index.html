@@ -91,17 +91,17 @@
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
 
-let QUESTIONS = [
-    { q: "He ______ TV every evening.", c: "watches", w: ["watch", "watching"], m: "เขาดูทีวี (ทุกเย็น)", p: "วอช-เชส" },
-    { q: "Look! She is ______ now.", c: "singing", w: ["sing", "sings"], m: "เธอกำลังร้องเพลง", p: "ซิงอิง" },
-    { q: "A cat ______ fish.", c: "eats", w: ["eat", "eating"], m: "แมวกินปลา", p: "อีทส์" },
-    { q: "I am ______ my homework.", c: "doing", w: ["do", "does"], m: "กำลังทำการบ้าน", p: "ดูอิง" },
-    { q: "She ______ to school every day.", c: "goes", w: ["go", "going"], m: "ไปโรงเรียนทุกวัน", p: "โกวส์" },
-    { q: "They are ______ football.", c: "playing", w: ["play", "plays"], m: "กำลังเล่นบอล", p: "เพลย์อิง" },
-    { q: "My dad ______ a car.", c: "drives", w: ["drive", "driving"], m: "พ่อขับรถ", p: "ไดรฟ์" },
-    { q: "Listen! The bird is ______. ", c: "singing", w: ["sing", "sings"], m: "นกกำลังร้องเพลง", p: "ซิงอิง" },
-    { q: "Mom is ______ food.", c: "cooking", w: ["cook", "cooks"], m: "แม่กำลังทำอาหาร", p: "คุ้กกิ้ง" },
-    { q: "She ______ happy today.", c: "looks", w: ["look", "looking"], m: "เธอมีอาการมีความสุข", p: "ลุ้คส์" }
+let NEW_QUESTIONS = [
+    { q: "A boy ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "เด็กผู้ชายอ่านหนังสือ", p: "รีดส์" },
+    { q: "The sun ______ in the morning.", c: "shines", w: ["shine", "shining"], m: "พระอาทิตย์ส่องแสง", p: "ไชน์ส" },
+    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "นกบินบนท้องฟ้า (หลายตัว)", p: "ฟลาย" },
+    { q: "He ______ coffee every morning.", c: "drinks", w: ["drink", "drinking"], m: "เขาดื่มกาแฟ", p: "ดริงก์ส" },
+    { q: "We ______ to the park on Sundays.", c: "walk", w: ["walks", "walking"], m: "พวกเราเดินไปสวนสาธารณะ", p: "วอล์ค" },
+    { q: "A rabbit ______ fast.", c: "runs", w: ["run", "running"], m: "กระต่ายวิ่งเร็ว", p: "รันส์" },
+    { q: "Teachers ______ the students.", c: "help", w: ["helps", "helping"], m: "คุณครูช่วยเหลือเลานักเรียน", p: "เฮลป์" },
+    { q: "She ______ a beautiful song.", c: "sings", w: ["sing", "singing"], m: "เธอร้องเพลง (ประจำ)", p: "ซิงส์" },
+    { q: "The water ______ at 100 degrees.", c: "boils", w: ["boil", "boiling"], m: "น้ำเดือดที่ 100 องศา", p: "บอยล์ส" },
+    { q: "You ______ very kind.", c: "look", w: ["looks", "looking"], m: "คุณดูใจดีจัง", p: "ลุ้ค" }
 ];
 
 const CFG = { gravity: 1.5, spawnRate: 110, eatDist: 100, mouthThresh: 0.04 };
@@ -292,3 +292,4 @@ fetchQuestions();
 </script>
 </body>
 </html>
+
