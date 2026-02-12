@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR English Eat - Score & Skill Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>AR English Eat - Present Simple Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -25,7 +25,7 @@
         <canvas id="output-canvas" class="absolute inset-0"></canvas>
         
         <div id="ui-layer" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
-            <div id="hud" class="glass rounded-2xl p-3 flex flex-col gap-2 hidden">
+            <div id="hud" class="glass rounded-2xl p-3 flex flex-col gap-2 transition-opacity duration-300 hidden">
                 <div class="flex justify-between items-center px-1">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg" id="score-box">0</div>
@@ -34,7 +34,7 @@
                 </div>
                 <div id="question-text" class="text-center text-yellow-300 text-lg md:text-xl font-bold py-1 bg-black/20 rounded-lg">...</div>
             </div>
-            <div id="toast" class="self-center glass px-8 py-3 rounded-full text-base font-bold hidden shadow-2xl"></div>
+            <div id="toast" class="self-center glass px-8 py-3 rounded-full text-base font-bold hidden shadow-2xl transition-opacity duration-300"></div>
         </div>
 
         <div id="screen-login" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col justify-center items-center p-6 text-center">
@@ -42,7 +42,7 @@
             <div class="glass p-8 rounded-3xl w-full max-w-sm space-y-4 pointer-events-auto">
                 <input type="text" id="inp-name" class="w-full bg-gray-800 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="ชื่อเล่น">
                 <input type="number" id="inp-num" class="w-full bg-gray-800 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="เลขที่">
-                <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เริ่มต้น</button>
+                <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เริ่มเกม</button>
             </div>
         </div>
 
@@ -51,50 +51,48 @@
                 <h2 class="text-2xl font-black text-purple-400">📜 กติกาและการให้คะแนน</h2>
                 <div class="text-left space-y-4 text-sm">
                     <div class="bg-green-900/30 p-3 rounded-xl border border-green-500/30">
-                        <p>✅ <b>อ้าปากกินคำตอบที่ถูก:</b> <span class="text-green-400 font-bold">+5 คะแนน</span></p>
-                        <p>✅ <b>พูดออกเสียงได้ถูกต้อง:</b> <span class="text-green-400 font-bold">+5 คะแนน</span></p>
+                        <p>✅ <b>กินคำตอบที่ถูก:</b> <span class="text-green-400 font-bold">+5 คะแนน</span></p>
+                        <p>✅ <b>ออกเสียงภาษาอังกฤษถูก:</b> <span class="text-green-400 font-bold">+5 คะแนน</span></p>
                     </div>
                     <div class="bg-red-900/30 p-3 rounded-xl border border-red-500/30">
-                        <p>❌ <b>อ้าปากกินคำที่ผิด:</b> <span class="text-red-400 font-bold">-5 คะแนน</span></p>
-                        <p>❌ <b>กดข้าม/ไม่ออกเสียง:</b> <span class="text-red-400 font-bold">-2 คะแนน</span></p>
+                        <p>❌ <b>กินคำตอบที่ผิด:</b> <span class="text-red-400 font-bold">-5 คะแนน</span></p>
+                        <p>❌ <b>กดปุ่มข้ามคำศัพท์:</b> <span class="text-red-400 font-bold">-2 คะแนน</span></p>
                     </div>
-                    <p class="text-center text-yellow-400 italic">"หากพูดผิดครบ 3 ครั้ง คำอ่านภาษาไทยจะปรากฏขึ้น"</p>
+                    <p class="text-yellow-400 italic text-center text-xs">*หากออกเสียงผิด 3 ครั้ง ระบบจะมีคำอ่านตัวช่วยปรากฏขึ้น</p>
                 </div>
                 <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">เข้าสู่เกม</button>
             </div>
         </div>
 
         <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
-            <h2 class="text-xl text-purple-300 font-bold mb-2 uppercase">Now Speak!</h2>
+            <h2 class="text-xl text-purple-300 font-bold mb-2 uppercase italic">Speak the word</h2>
             <div id="sp-word" class="text-6xl font-extrabold text-white mb-2">...</div>
             <div id="sp-reading" class="text-2xl text-purple-400 font-medium mb-4 italic invisible">...</div>
             <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full mb-12">...</div>
-            <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 pointer-events-auto shadow-lg">
+            <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 pointer-events-auto">
                 <div id="mic-icon" class="text-4xl">🎙️</div>
             </button>
-            <p id="sp-status" class="mt-8 text-white/70">กดปุ่มไมค์แล้วเริ่มพูด</p>
+            <p id="sp-status" class="mt-8 text-white/70">กดไมค์แล้วพูดคำศัพท์</p>
             <button onclick="endSpeech(false)" class="mt-12 text-sm text-gray-400 underline pointer-events-auto">ข้ามคำนี้ (-2 คะแนน)</button>
         </div>
 
         <div id="screen-end" class="absolute inset-0 bg-[#0f172a] z-50 hidden flex flex-col justify-center items-center p-6 text-center">
-            <h1 class="text-5xl font-black text-white mb-2">จบเกม!</h1>
-            <p id="save-status" class="text-blue-400 animate-pulse mb-6 text-sm">กำลังบันทึกคะแนนลง Sheets...</p>
+            <h1 class="text-5xl font-black text-white mb-4">จบเกม!</h1>
             <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400/50 mb-8 w-44 h-44 flex items-center justify-center">
-                <div><div class="text-xs text-gray-400 font-bold uppercase">Score</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
+                <div><div class="text-xs text-gray-400 font-bold uppercase">Final Score</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
             </div>
-            <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto shadow-xl">🔄 เล่นอีกครั้ง</button>
+            <p id="save-status" class="text-blue-400 animate-pulse mb-6">กำลังบันทึกคะแนน...</p>
+            <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto">เล่นอีกครั้ง</button>
         </div>
     </div>
 
 <script>
-// *** ใส่ URL Apps Script ของคุณครูตรงนี้ ***
 const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
 
-// โจทย์ใหม่ Present Simple (จากข้อมูลตารางที่ครูต้องการ)
 let QUESTIONS = [
     { q: "A boy ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "เด็กชายอ่านหนังสือ", p: "รีดส์" },
     { q: "The sun ______ in the morning.", c: "shines", w: ["shine", "shining"], m: "ดวงอาทิตย์ส่องแสง", p: "ไชน์ส" },
-    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "นกบิน", p: "ฟลาย" },
+    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "นกบินบนท้องฟ้า", p: "ฟลาย" },
     { q: "He ______ coffee every morning.", c: "drinks", w: ["drink", "drinking"], m: "เขาดื่มกาแฟ", p: "ดริงก์ส" },
     { q: "We ______ to the park on Sundays.", c: "walk", w: ["walks", "walking"], m: "พวกเราเดินไปสวนฯ", p: "วอล์ค" },
     { q: "A rabbit ______ very fast.", c: "runs", w: ["run", "running"], m: "กระต่ายวิ่งเร็ว", p: "รันส์" },
@@ -134,9 +132,13 @@ async function sendData() {
     };
     try {
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        document.getElementById('save-status').innerText = "✅ บันทึกคะแนนเรียบร้อย!";
+        document.getElementById('save-status').innerText = "✅ บันทึกคะแนนสำเร็จ!";
     } catch(e) { document.getElementById('save-status').innerText = "❌ บันทึกไม่สำเร็จ"; }
 }
+
+let lastCameraFrame = null, camReady = false, animId = null;
+const ctx = document.getElementById('output-canvas').getContext('2d');
+const videoElement = document.getElementById('input_video');
 
 function showRules() {
     const name = document.getElementById('inp-name').value.trim();
@@ -196,19 +198,29 @@ function gameLoop() {
     animId = requestAnimationFrame(gameLoop);
 }
 
+function spawnItem() {
+    const q = QUESTIONS[G.qIdx];
+    const isCorrect = Math.random() > 0.4;
+    G.items.push({
+        x: Math.random() * (window.innerWidth - 100) + 50, y: -50,
+        text: isCorrect ? q.c : q.w[Math.floor(Math.random() * q.w.length)],
+        type: isCorrect ? 'c' : 'w', vx: (Math.random() - 0.5) * 1.5, vy: Math.random() * 1.5 + CFG.gravity
+    });
+}
+
 function handleEat(item, idx) {
     if (item.type === 'c') {
         G.items = []; G.pendingItem = item; G.playing = false; cancelAnimationFrame(animId);
         G.score += 5; G.wrongCount = 0;
         document.getElementById('screen-speech').classList.replace('hidden', 'flex');
         document.getElementById('sp-word').innerText = item.text;
-        document.getElementById('sp-reading').innerText = `(${QUESTIONS[G.qIdx].p})`;
-        document.getElementById('sp-reading').classList.add('invisible');
+        document.getElementById('sp-reading').innerText = `(${QUESTIONS[G.qIdx].p})`; // คำอ่านไทย
+        document.getElementById('sp-reading').classList.add('invisible'); // ซ่อนไว้ก่อน
         document.getElementById('sp-meaning').innerText = QUESTIONS[G.qIdx].m;
         updateHUD(); resetMicUI();
     } else {
         G.items.splice(idx, 1); G.score = Math.max(0, G.score - 5); updateHUD();
-        showToast(`เลือกผิด! -5 คะแนน`, 'red');
+        showToast(`ผิด! -5 คะแนน`, 'red');
     }
 }
 
@@ -224,12 +236,21 @@ function startSpeechTask() {
     recognition.onresult = (e) => {
         const spoken = e.results[0][0].transcript.toLowerCase();
         const target = G.pendingItem.text.toLowerCase();
-        // ปรับให้พูดยางง่ายขึ้น (เช็กคำที่ใกล้เคียง)
-        if (spoken.includes(target) || spoken.slice(0,3) === target.slice(0,3)) endSpeech(true);
-        else {
+        
+        // --- ส่วนที่ปรับให้ยืดหยุ่นขึ้น ---
+        const isMatch = spoken.includes(target) || 
+                        spoken.slice(0,3) === target.slice(0,3) ||
+                        (target.length > 4 && spoken.includes(target.slice(0, target.length - 1)));
+
+        if (isMatch) {
+            endSpeech(true);
+        } else {
             G.wrongCount++;
-            if (G.wrongCount >= 3) document.getElementById('sp-reading').classList.remove('invisible');
-            document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}" (ลองอีกครั้ง)`;
+            // --- ผิดครบ 3 ครั้ง โชว์คำอ่านภาษาไทย ---
+            if (G.wrongCount >= 3) {
+                document.getElementById('sp-reading').classList.remove('invisible');
+            }
+            document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}" (ลองใหม่นะ)`;
         }
     };
     recognition.onend = resetMicUI;
@@ -242,7 +263,7 @@ function endSpeech(success) {
     document.getElementById('screen-speech').classList.replace('flex', 'hidden');
     let currentWord = G.pendingItem.text;
     if (success) { G.score += 5; G.passedWords.push(currentWord); showToast(`เยี่ยม! +5 คะแนน`, 'green'); }
-    else { G.score = Math.max(0, G.score - 2); G.skippedWords.push(currentWord); showToast(`ข้ามคำ -2 คะแนน`, 'red'); }
+    else { G.score = Math.max(0, G.score - 2); G.skippedWords.push(currentWord); showToast(`ข้าม -2 คะแนน`, 'red'); }
     if (++G.qIdx >= QUESTIONS.length) finishGame();
     else { G.playing = true; loadLevel(); gameLoop(); }
 }
