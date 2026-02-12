@@ -285,15 +285,20 @@ function resetMicUI() {
 function endSpeech(success) {
     document.getElementById('screen-speech').classList.add('hidden');
     document.getElementById('screen-speech').classList.remove('flex');
-    if (success) { G.score += 5; showToast(`ยอดเยี่ยม! +5`, 'green'); } 
-    else { G.score = Math.max(0, G.score - 2); showToast(`ข้าม... -2`, 'red'); }
+    if (success) { 
+        G.score += 5; 
+        showToast(`ยอดเยี่ยม! +5`, 'green'); 
+    } else { 
+        G.score = Math.max(0, G.score - 2); // เปลี่ยนจาก -5 เป็น -2 ตรงนี้ครับ
+        showToast(`ข้าม... -2`, 'red'); 
+    }
     if (++G.qIdx >= QUESTIONS.length) finishGame();
     else { G.playing = true; loadLevel(); gameLoop(); }
 }
 
 function loadLevel() {
     document.getElementById('question-text').innerText = `${G.qIdx + 1}. ${QUESTIONS[G.qIdx].q}`;
-    updateHUD();
+    updateHUD(); 
     const u = new SpeechSynthesisUtterance(QUESTIONS[G.qIdx].q);
     u.lang = 'en-US'; speechSynthesis.speak(u);
 }
@@ -314,6 +319,4 @@ function showToast(msg, c) {
 }
 </script>
 </body>
-
 </html>
-
