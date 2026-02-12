@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>AR English Eat - Present Simple Edition</title>
+    <title>AR English Eat - Present Simple</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -11,11 +11,12 @@
     <style>
         body { font-family: 'Prompt', sans-serif; background: #0f172a; overscroll-behavior: none; }
         canvas { width: 100%; height: 100%; object-fit: cover; }
-        .glass { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .btn-game { background: linear-gradient(to bottom, #a855f7, #7e22ce); box-shadow: 0 4px 0 #581c87; transition: all 0.1s; cursor: pointer; }
         .btn-game:active { transform: translateY(2px); box-shadow: 0 2px 0 #581c87; }
-        .mic-listening { animation: pulse 1.5s infinite; border-color: #f87171 !important; background: #ef4444 !important; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .mic-listening { animation: pulse 1.5s infinite; background: #ef4444 !important; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        #countdown { font-size: 8rem; text-shadow: 0 0 20px rgba(168, 85, 247, 0.8); }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden text-white select-none">
@@ -25,20 +26,20 @@
         <canvas id="output-canvas" class="absolute inset-0"></canvas>
         
         <div id="ui-layer" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
-            <div id="hud" class="glass rounded-2xl p-3 flex flex-col gap-2 transition-opacity duration-300 hidden">
+            <div id="hud" class="glass rounded-2xl p-3 flex flex-col gap-2 opacity-0 transition-opacity duration-500">
                 <div class="flex justify-between items-center px-1">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg" id="score-box">0</div>
                         <div class="text-xs text-gray-300"><div class="font-bold text-white uppercase" id="player-label">Player</div></div>
                     </div>
                 </div>
-                <div id="question-text" class="text-center text-yellow-300 text-lg md:text-xl font-bold py-1 bg-black/20 rounded-lg">...</div>
+                <div id="question-text" class="text-center text-yellow-300 text-lg md:text-xl font-bold py-2 bg-black/40 rounded-lg px-2 break-words">...</div>
             </div>
-            <div id="toast" class="self-center glass px-8 py-3 rounded-full text-base font-bold hidden shadow-2xl transition-opacity duration-300"></div>
+            <div id="toast" class="self-center glass px-8 py-3 rounded-full text-base font-bold hidden shadow-2xl"></div>
         </div>
 
         <div id="screen-login" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col justify-center items-center p-6 text-center">
-            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-8">AR English Eat</h1>
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-8 uppercase tracking-tighter">AR English Eat</h1>
             <div class="glass p-8 rounded-3xl w-full max-w-sm space-y-4 pointer-events-auto">
                 <input type="text" id="inp-name" class="w-full bg-gray-800 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="ชื่อเล่น">
                 <input type="number" id="inp-num" class="w-full bg-gray-800 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="เลขที่">
@@ -46,63 +47,54 @@
             </div>
         </div>
 
-        <div id="screen-rules" class="absolute inset-0 bg-[#0f172a]/95 z-[60] hidden flex flex-col justify-center items-center p-6 text-center">
-            <div class="glass p-6 rounded-3xl w-full max-w-md space-y-6 border-purple-500/50 border-2 pointer-events-auto">
-                <h2 class="text-2xl font-black text-purple-400">📜 กติกาและการให้คะแนน</h2>
-                <div class="text-left space-y-4 text-sm">
-                    <div class="bg-green-900/30 p-3 rounded-xl border border-green-500/30">
-                        <p>✅ <b>กินคำตอบที่ถูก:</b> <span class="text-green-400 font-bold">+5 คะแนน</span></p>
-                        <p>✅ <b>ออกเสียงภาษาอังกฤษถูก:</b> <span class="text-green-400 font-bold">+5 คะแนน</span></p>
-                    </div>
-                    <div class="bg-red-900/30 p-3 rounded-xl border border-red-500/30">
-                        <p>❌ <b>กินคำตอบที่ผิด:</b> <span class="text-red-400 font-bold">-5 คะแนน</span></p>
-                        <p>❌ <b>กดปุ่มข้ามคำศัพท์:</b> <span class="text-red-400 font-bold">-2 คะแนน</span></p>
-                    </div>
-                    <p class="text-yellow-400 italic text-center text-xs">*หากออกเสียงผิด 3 ครั้ง ระบบจะมีคำอ่านตัวช่วยปรากฏขึ้น</p>
+        <div id="screen-rules" class="absolute inset-0 bg-[#0f172a]/95 z-[60] hidden flex flex-col justify-center items-center p-6">
+            <div class="glass p-6 rounded-3xl w-full max-w-md space-y-6 border-purple-500/50 border-2 pointer-events-auto text-center">
+                <h2 class="text-2xl font-black text-purple-400">📜 กติกา</h2>
+                <div class="text-left space-y-3 text-sm">
+                    <p>✅ อ้าปากเพื่อ <b>"กิน"</b> คำตอบที่ถูกต้อง</p>
+                    <p>✅ <b>ออกเสียงภาษาอังกฤษ</b> ให้ถูกต้องเพื่อผ่าน</p>
+                    <p>❌ หากกินผิดหรือข้าม คะแนนจะลดลง</p>
                 </div>
-                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">เข้าสู่เกม</button>
+                <button onclick="startGameFlow()" class="w-full btn-game py-4 rounded-xl font-bold text-xl">พร้อมแล้ว!</button>
             </div>
         </div>
 
+        <div id="countdown-layer" class="absolute inset-0 z-[70] hidden flex items-center justify-center bg-black/40">
+            <div id="countdown" class="font-black italic">3</div>
+        </div>
+
         <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
-            <h2 class="text-xl text-purple-300 font-bold mb-2 uppercase italic">Speak the word</h2>
-            <div id="sp-word" class="text-6xl font-extrabold text-white mb-2">...</div>
+            <h2 class="text-xl text-purple-300 font-bold mb-2 uppercase italic">Speak it!</h2>
+            <div id="sp-word" class="text-6xl font-extrabold text-white mb-2 tracking-tight">...</div>
             <div id="sp-reading" class="text-2xl text-purple-400 font-medium mb-4 italic invisible">...</div>
             <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full mb-12">...</div>
-            <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 pointer-events-auto">
+            <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 pointer-events-auto shadow-2xl">
                 <div id="mic-icon" class="text-4xl">🎙️</div>
             </button>
-            <p id="sp-status" class="mt-8 text-white/70">กดไมค์แล้วพูดคำศัพท์</p>
+            <p id="sp-status" class="mt-8 text-white/70">แตะเพื่อพูด</p>
             <button onclick="endSpeech(false)" class="mt-12 text-sm text-gray-400 underline pointer-events-auto">ข้ามคำนี้ (-2 คะแนน)</button>
         </div>
 
         <div id="screen-end" class="absolute inset-0 bg-[#0f172a] z-50 hidden flex flex-col justify-center items-center p-6 text-center">
-            <h1 class="text-5xl font-black text-white mb-4">จบเกม!</h1>
-            <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400/50 mb-8 w-44 h-44 flex items-center justify-center">
+            <h1 class="text-5xl font-black text-white mb-4">FINISH!</h1>
+            <div class="bg-gray-800/50 p-8 rounded-full border-4 border-yellow-400 mb-8 w-44 h-44 flex items-center justify-center">
                 <div><div class="text-xs text-gray-400 font-bold uppercase">Final Score</div><div id="final-score" class="text-5xl font-black text-yellow-400">0</div></div>
             </div>
-            <p id="save-status" class="text-blue-400 animate-pulse mb-6">กำลังบันทึกคะแนน...</p>
-            <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto">เล่นอีกครั้ง</button>
+            <p id="save-status" class="text-blue-400 animate-pulse mb-6 italic">Saving score...</p>
+            <button onclick="location.reload()" class="w-full max-w-xs bg-purple-600 py-4 rounded-xl font-bold pointer-events-auto shadow-xl">เล่นอีกครั้ง</button>
         </div>
     </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
+const API_URL = "YOUR_SCRIPT_URL_HERE"; // แก้ไข URL ตรงนี้
 
 let QUESTIONS = [
     { q: "A boy ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "เด็กชายอ่านหนังสือ", p: "รีดส์" },
     { q: "The sun ______ in the morning.", c: "shines", w: ["shine", "shining"], m: "ดวงอาทิตย์ส่องแสง", p: "ไชน์ส" },
-    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "นกบินบนท้องฟ้า", p: "ฟลาย" },
-    { q: "He ______ coffee every morning.", c: "drinks", w: ["drink", "drinking"], m: "เขาดื่มกาแฟ", p: "ดริงก์ส" },
-    { q: "We ______ to the park on Sundays.", c: "walk", w: ["walks", "walking"], m: "พวกเราเดินไปสวนฯ", p: "วอล์ค" },
-    { q: "A rabbit ______ very fast.", c: "runs", w: ["run", "running"], m: "กระต่ายวิ่งเร็ว", p: "รันส์" },
-    { q: "Teachers ______ the students.", c: "help", w: ["helps", "helping"], m: "ครูช่วยเหลือนักเรียน", p: "เฮลป์" },
-    { q: "She ______ a beautiful song.", c: "sings", w: ["sing", "singing"], m: "เธอร้องเพลง", p: "ซิงส์" },
-    { q: "Water ______ at 100 degrees.", c: "boils", w: ["boil", "boiling"], m: "น้ำเดือด", p: "บอยล์ส" },
-    { q: "You ______ very kind today.", c: "look", w: ["looks", "looking"], m: "คุณดูใจดีจังวันนี้", p: "ลุ้ค" }
+    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "นกบินบนท้องฟ้า", p: "ฟลาย" }
 ];
 
-const CFG = { gravity: 1.5, spawnRate: 110, eatDist: 100, mouthThresh: 0.04 };
+const CFG = { gravity: 1.8, spawnRate: 110, eatDist: 90, mouthThresh: 0.05 };
 window.G = {
     playing: false, score: 0, qIdx: 0, items: [], 
     mouth: {x:0, y:0, open:false}, user: {name:'', number:''},
@@ -110,30 +102,30 @@ window.G = {
     wrongCount: 0, passedWords: [], skippedWords: []
 };
 
-async function fetchQuestions() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        if (data && data.length > 0) {
-            QUESTIONS = data.map(i => ({
-                q: i.question, c: i.correct, w: String(i.wrong).split(',').map(s=>s.trim()), m: i.meaning, p: i.reading
-            }));
-        }
-    } catch(e) { console.log("Using internal questions"); }
+// --- Sound Effects (Simple beep for feedback) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(freq, type = 'sine') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
 }
 
+// --- การจัดการคะแนนและข้อมูล ---
 async function sendData() {
     const payload = {
-        name: G.user.name,
-        number: G.user.number,
-        passed: G.passedWords.join(", "),
-        skipped: G.skippedWords.join(", "),
-        score: G.score
+        name: G.user.name, number: G.user.number,
+        passed: G.passedWords.join(", "), skipped: G.skippedWords.join(", "), score: G.score
     };
     try {
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         document.getElementById('save-status').innerText = "✅ บันทึกคะแนนสำเร็จ!";
-    } catch(e) { document.getElementById('save-status').innerText = "❌ บันทึกไม่สำเร็จ"; }
+    } catch(e) { 
+        document.getElementById('save-status').innerText = "⚠️ บันทึกข้อมูลไม่สำเร็จ"; 
+    }
 }
 
 let lastCameraFrame = null, camReady = false, animId = null;
@@ -142,7 +134,7 @@ const videoElement = document.getElementById('input_video');
 
 function showRules() {
     const name = document.getElementById('inp-name').value.trim();
-    if (!name) return alert("กรุณากรอกชื่อ");
+    if (!name) return alert("กรุณากรอกชื่อเล่น");
     G.user = { name, number: document.getElementById('inp-num').value.trim() };
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-rules').classList.remove('hidden');
@@ -156,7 +148,13 @@ function startGameFlow() {
 
 async function initCamera() {
     const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-    faceMesh.setOptions({maxNumFaces: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+    faceMesh.setOptions({
+        maxNumFaces: 1, 
+        refineLandmarks: true, 
+        minDetectionConfidence: 0.5, 
+        minTrackingConfidence: 0.5,
+        selfieMode: true // ปรับให้เป็นกระจกเงา (เหมาะกับ AR)
+    });
     faceMesh.onResults(onFaceResults);
     const camera = new Camera(videoElement, { onFrame: async () => { await faceMesh.send({image: videoElement}); }, width: 1280, height: 720 });
     camera.start();
@@ -168,122 +166,189 @@ function onFaceResults(res) {
         const w = window.innerWidth, h = window.innerHeight, lm = res.multiFaceLandmarks[0];
         const uLip = lm[13], lLip = lm[14], h_top = lm[10], h_bot = lm[152];
         G.mouth.open = Math.abs(uLip.y - lLip.y) > (Math.abs(h_top.y - h_bot.y) * CFG.mouthThresh);
-        G.mouth.x = (1 - ((uLip.x + lLip.x) / 2)) * w;
-        G.mouth.y = ((uLip.y + lLip.y) / 2) * h;
-        if (!camReady) { camReady = true; realStart(); }
+        // เนื่องจากใช้ selfieMode: true การคำนวณ x จึงต้องใช้ uLip.x ตรงๆ (MediaPipe กลับด้านให้แล้ว)
+        G.mouth.x = uLip.x * w; 
+        G.mouth.y = uLip.y * h;
+        if (!camReady) { camReady = true; runCountdown(); }
     }
 }
 
-function realStart() { G.playing = true; document.getElementById('hud').classList.remove('hidden'); loadLevel(); gameLoop(); }
+function runCountdown() {
+    const el = document.getElementById('countdown-layer');
+    const txt = document.getElementById('countdown');
+    el.classList.remove('hidden');
+    let count = 3;
+    const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+            txt.innerText = count;
+            playSound(440);
+        } else {
+            clearInterval(timer);
+            el.classList.add('hidden');
+            playSound(880);
+            realStart();
+        }
+    }, 1000);
+}
+
+function realStart() { 
+    G.playing = true; 
+    document.getElementById('hud').classList.replace('opacity-0', 'opacity-100'); 
+    loadLevel(); 
+    gameLoop(); 
+}
 
 function gameLoop() {
     if (!G.playing) return;
     const w = ctx.canvas.width = window.innerWidth, h = ctx.canvas.height = window.innerHeight;
-    ctx.save(); ctx.clearRect(0, 0, w, h);
-    if (lastCameraFrame) { ctx.translate(w, 0); ctx.scale(-1, 1); ctx.drawImage(lastCameraFrame, 0, 0, w, h); }
+    ctx.save();
+    if (lastCameraFrame) {
+        // วาดภาพจากกล้อง (รองรับ Selfie Mode)
+        ctx.drawImage(lastCameraFrame, 0, 0, w, h);
+    }
     ctx.restore();
-    ctx.beginPath(); ctx.arc(G.mouth.x, G.mouth.y, G.mouth.open ? 40 : 20, 0, Math.PI * 2);
-    ctx.lineWidth = 4; ctx.strokeStyle = G.mouth.open ? '#4ade80' : '#f472b6'; ctx.stroke();
+
+    // วาดจุดเล็งปาก
+    ctx.beginPath(); 
+    ctx.arc(G.mouth.x, G.mouth.y, G.mouth.open ? 35 : 15, 0, Math.PI * 2);
+    ctx.lineWidth = 5; 
+    ctx.strokeStyle = G.mouth.open ? '#4ade80' : '#f472b6'; 
+    ctx.stroke();
+
     if (Math.random() * 1000 < (1000 / CFG.spawnRate)) spawnItem();
-    ctx.font = "bold 26px 'Prompt'"; ctx.textAlign = "center";
+
+    ctx.font = "bold 24px 'Prompt'"; ctx.textAlign = "center";
     for (let i = G.items.length - 1; i >= 0; i--) {
-        let it = G.items[i]; it.y += it.vy; it.x += it.vx;
+        let it = G.items[i]; 
+        it.y += it.vy; it.x += it.vx;
+        
         const tw = ctx.measureText(it.text).width + 30;
-        ctx.fillStyle = "rgba(139, 92, 246, 0.95)";
-        ctx.beginPath(); ctx.roundRect(it.x - tw/2, it.y - 23, tw, 46, 15); ctx.fill();
+        ctx.fillStyle = "rgba(124, 58, 237, 0.9)";
+        ctx.beginPath(); ctx.roundRect(it.x - tw/2, it.y - 25, tw, 50, 15); ctx.fill();
         ctx.fillStyle = "white"; ctx.fillText(it.text, it.x, it.y + 10);
-        if (Math.sqrt((it.x - G.mouth.x)**2 + (it.y - G.mouth.y)**2) < CFG.eatDist && G.mouth.open) handleEat(it, i);
-        else if (it.y > h + 50) G.items.splice(i, 1);
+
+        // Check Hit (กิน)
+        const dist = Math.sqrt((it.x - G.mouth.x)**2 + (it.y - G.mouth.y)**2);
+        if (dist < CFG.eatDist && G.mouth.open) {
+            handleEat(it, i);
+        } else if (it.y > h + 100) {
+            G.items.splice(i, 1);
+        }
     }
     animId = requestAnimationFrame(gameLoop);
 }
 
 function spawnItem() {
     const q = QUESTIONS[G.qIdx];
-    const isCorrect = Math.random() > 0.4;
+    const isCorrect = Math.random() > 0.5;
     G.items.push({
-        x: Math.random() * (window.innerWidth - 100) + 50, y: -50,
+        x: Math.random() * (window.innerWidth - 150) + 75, y: -50,
         text: isCorrect ? q.c : q.w[Math.floor(Math.random() * q.w.length)],
-        type: isCorrect ? 'c' : 'w', vx: (Math.random() - 0.5) * 1.5, vy: Math.random() * 1.5 + CFG.gravity
+        type: isCorrect ? 'c' : 'w', vx: (Math.random() - 0.5) * 1.2, vy: Math.random() * 1.2 + CFG.gravity
     });
 }
 
 function handleEat(item, idx) {
     if (item.type === 'c') {
-        G.items = []; G.pendingItem = item; G.playing = false; cancelAnimationFrame(animId);
+        playSound(660);
+        G.items = []; G.pendingItem = item; G.playing = false;
+        cancelAnimationFrame(animId);
         G.score += 5; G.wrongCount = 0;
         document.getElementById('screen-speech').classList.replace('hidden', 'flex');
         document.getElementById('sp-word').innerText = item.text;
-        document.getElementById('sp-reading').innerText = `(${QUESTIONS[G.qIdx].p})`; // คำอ่านไทย
-        document.getElementById('sp-reading').classList.add('invisible'); // ซ่อนไว้ก่อน
+        document.getElementById('sp-reading').innerText = `(${QUESTIONS[G.qIdx].p})`;
+        document.getElementById('sp-reading').classList.add('invisible');
         document.getElementById('sp-meaning').innerText = QUESTIONS[G.qIdx].m;
         updateHUD(); resetMicUI();
     } else {
-        G.items.splice(idx, 1); G.score = Math.max(0, G.score - 5); updateHUD();
-        showToast(`ผิด! -5 คะแนน`, 'red');
+        playSound(220, 'square');
+        G.items.splice(idx, 1); 
+        G.score = Math.max(0, G.score - 5); updateHUD();
+        showToast(`ผิดนะ! -5`, 'red');
     }
 }
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
-function toggleListening() { if (G.isListening) { recognition.stop(); return; } startSpeechTask(); }
+function toggleListening() { 
+    if (G.isListening) { recognition.stop(); return; } 
+    startSpeechTask(); 
+}
 
 function startSpeechTask() {
     G.isListening = true;
     document.getElementById('mic-btn').classList.add('mic-listening');
+    document.getElementById('sp-status').innerText = "Listening...";
+    
     recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.onresult = (e) => {
         const spoken = e.results[0][0].transcript.toLowerCase();
         const target = G.pendingItem.text.toLowerCase();
         
-        // --- ส่วนที่ปรับให้ยืดหยุ่นขึ้น ---
-        const isMatch = spoken.includes(target) || 
-                        spoken.slice(0,3) === target.slice(0,3) ||
-                        (target.length > 4 && spoken.includes(target.slice(0, target.length - 1)));
+        // กรองการตรวจจับให้แม่นขึ้นแต่ไม่ยากเกินไป
+        const cleanSpoken = spoken.replace(/[^a-z]/g, '');
+        const isMatch = cleanSpoken.includes(target) || (target.length > 3 && cleanSpoken.slice(0, target.length-1) === target.slice(0, target.length-1));
 
         if (isMatch) {
+            playSound(880);
             endSpeech(true);
         } else {
+            playSound(330);
             G.wrongCount++;
-            // --- ผิดครบ 3 ครั้ง โชว์คำอ่านภาษาไทย ---
-            if (G.wrongCount >= 3) {
-                document.getElementById('sp-reading').classList.remove('invisible');
-            }
-            document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}" (ลองใหม่นะ)`;
+            if (G.wrongCount >= 3) document.getElementById('sp-reading').classList.remove('invisible');
+            document.getElementById('sp-status').innerText = `ลองอีกที! (ได้ยินว่า "${spoken}")`;
         }
     };
     recognition.onend = resetMicUI;
     recognition.start();
 }
 
-function resetMicUI() { G.isListening = false; document.getElementById('mic-btn').classList.remove('mic-listening'); }
+function resetMicUI() { 
+    G.isListening = false; 
+    document.getElementById('mic-btn').classList.remove('mic-listening'); 
+    if (G.playing === false && !document.getElementById('screen-speech').classList.contains('hidden')) {
+        document.getElementById('sp-status').innerText = "แตะไมค์เพื่อลองใหม่";
+    }
+}
 
 function endSpeech(success) {
     document.getElementById('screen-speech').classList.replace('flex', 'hidden');
-    let currentWord = G.pendingItem.text;
-    if (success) { G.score += 5; G.passedWords.push(currentWord); showToast(`เยี่ยม! +5 คะแนน`, 'green'); }
-    else { G.score = Math.max(0, G.score - 2); G.skippedWords.push(currentWord); showToast(`ข้าม -2 คะแนน`, 'red'); }
-    if (++G.qIdx >= QUESTIONS.length) finishGame();
-    else { G.playing = true; loadLevel(); gameLoop(); }
+    if (success) { 
+        G.score += 5; 
+        G.passedWords.push(G.pendingItem.text); 
+        showToast(`Correct! +5`, 'green'); 
+    } else { 
+        G.score = Math.max(0, G.score - 2); 
+        G.skippedWords.push(G.pendingItem.text); 
+        showToast(`Skipped -2`, 'red'); 
+    }
+    
+    if (++G.qIdx >= QUESTIONS.length) {
+        finishGame();
+    } else {
+        G.playing = true; loadLevel(); gameLoop();
+    }
 }
 
 function finishGame() {
-    G.playing = false; cancelAnimationFrame(animId);
+    G.playing = false; 
     document.getElementById('screen-end').classList.replace('hidden', 'flex');
     document.getElementById('final-score').innerText = G.score;
     sendData();
 }
 
-function loadLevel() { document.getElementById('question-text').innerText = `${G.qIdx + 1}. ${QUESTIONS[G.qIdx].q}`; updateHUD(); }
+function loadLevel() { 
+    document.getElementById('question-text').innerText = `${G.qIdx + 1}. ${QUESTIONS[G.qIdx].q}`; 
+    updateHUD(); 
+}
 function updateHUD() { document.getElementById('score-box').innerText = G.score; }
 function showToast(msg, c) {
     const t = document.getElementById('toast');
     t.innerText = msg; t.className = `self-center glass px-8 py-3 rounded-full text-base font-bold ${c === 'green' ? 'text-green-400' : 'text-red-400'}`;
     t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 1500);
 }
-
-fetchQuestions();
 </script>
 </body>
 </html>
