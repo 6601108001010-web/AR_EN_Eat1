@@ -61,7 +61,8 @@
                 <h2 class="text-2xl font-black text-center text-purple-400 tracking-wider">📜 กติกาการเล่น</h2>
                 <div class="space-y-4 text-sm md:text-base">
                     <p class="flex items-start gap-2"><span>👄</span> <b>วิธีเล่น:</b> อ้าปากค้างไว้เพื่อกินคำตอบที่ถูกต้อง</p>
-                    <p class="flex items-start gap-2"><span>🎙️</span> <b>การพูด:</b> เมื่อกินถูก ต้องออกเสียงคำนั้นผ่านไมค์</p>
+                    <p class="flex items-start gap-2"><span>🎙️</span> <b>การพูด:</b> ต้องออกเสียงให้ถูกต้องเพื่อผ่านด่าน</p>
+                    <p class="flex items-start gap-2 text-yellow-400"><span>💡</span> <b>ทิป:</b> ถ้าพูดผิด 3 ครั้ง คำอ่านภาษาไทยจะปรากฏขึ้น!</p>
                     <div class="grid grid-cols-2 gap-2 mt-4 text-center">
                         <div class="bg-black/30 p-2 rounded-lg border border-green-500/30">
                             <p class="text-[10px] text-gray-400">กินถูก</p><p class="font-bold text-green-400">+5</p>
@@ -84,8 +85,7 @@
         <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
             <h2 class="text-xl text-purple-300 font-bold mb-2">พูดคำนี้</h2>
             <div id="sp-word" class="text-6xl font-extrabold text-white mb-2">...</div>
-            <div id="sp-reading" class="text-2xl text-purple-400 font-medium mb-4 italic">...</div>
-            <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full border border-yellow-500/30 mb-12">...</div>
+            <div id="sp-reading" class="text-2xl text-purple-400 font-medium mb-4 italic invisible">...</div> <div id="sp-meaning" class="text-xl text-yellow-400 font-bold bg-gray-800 px-6 py-2 rounded-full border border-yellow-500/30 mb-12">...</div>
             <button id="mic-btn" onclick="toggleListening()" class="w-24 h-24 flex items-center justify-center bg-purple-600 rounded-full border-4 border-purple-400 transition-all pointer-events-auto">
                 <div id="mic-icon" class="text-4xl">🎙️</div>
             </button>
@@ -112,7 +112,8 @@ const CFG = { gravity: 1.5, spawnRate: 110, eatDist: 100, mouthThresh: 0.04 };
 window.G = {
     playing: false, score: 0, qIdx: 0, items: [], 
     mouth: {x:0, y:0, open:false}, user: {name:'', number:''},
-    pendingItem: null, isListening: false
+    pendingItem: null, isListening: false,
+    wrongCount: 0 // นับจำนวนครั้งที่พูดผิดในแต่ละข้อ
 };
 
 const QUESTIONS = [
@@ -134,7 +135,6 @@ let animId = null;
 const ctx = document.getElementById('output-canvas').getContext('2d');
 const videoElement = document.getElementById('input_video');
 
-// --- ฟังก์ชันนำทางหน้าจอ ---
 function showRules() {
     const name = document.getElementById('inp-name').value.trim();
     if (!name) return alert("กรุณากรอกชื่อ");
@@ -151,13 +151,11 @@ function startGameFlow() {
     initCamera();
 }
 
-// --- ระบบ AR & กล้อง ---
 async function initCamera() {
     document.getElementById('quick-loader').classList.remove('hidden');
     const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
     faceMesh.setOptions({maxNumFaces: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
     faceMesh.onResults(onFaceResults);
-
     const camera = new Camera(videoElement, {
         onFrame: async () => { await faceMesh.send({image: videoElement}); },
         width: 1280, height: 720
@@ -187,37 +185,26 @@ function realStart() {
     gameLoop();
 }
 
-// --- เกมลอจิก ---
 function gameLoop() {
     if (!G.playing) return;
     const w = ctx.canvas.width = window.innerWidth;
     const h = ctx.canvas.height = window.innerHeight;
-
     ctx.save();
     ctx.clearRect(0, 0, w, h);
-    if (lastCameraFrame) {
-        ctx.translate(w, 0); ctx.scale(-1, 1);
-        ctx.drawImage(lastCameraFrame, 0, 0, w, h);
-    }
+    if (lastCameraFrame) { ctx.translate(w, 0); ctx.scale(-1, 1); ctx.drawImage(lastCameraFrame, 0, 0, w, h); }
     ctx.restore();
-
-    // วาดปาก
     ctx.beginPath(); ctx.arc(G.mouth.x, G.mouth.y, G.mouth.open ? 40 : 20, 0, Math.PI * 2);
     ctx.lineWidth = 4; ctx.strokeStyle = G.mouth.open ? '#4ade80' : '#f472b6'; ctx.stroke();
-
     if (Math.random() * 1000 < (1000 / CFG.spawnRate)) spawnItem();
     ctx.font = "bold 26px 'Prompt'"; ctx.textAlign = "center";
-
     for (let i = G.items.length - 1; i >= 0; i--) {
         let it = G.items[i]; it.y += it.vy; it.x += it.vx;
         const tw = ctx.measureText(it.text).width + 30;
         ctx.fillStyle = "rgba(139, 92, 246, 0.95)";
         ctx.beginPath(); ctx.roundRect(it.x - tw/2, it.y - 23, tw, 46, 15); ctx.fill();
         ctx.fillStyle = "white"; ctx.fillText(it.text, it.x, it.y + 10);
-
-        if (Math.sqrt((it.x - G.mouth.x)**2 + (it.y - G.mouth.y)**2) < CFG.eatDist && G.mouth.open) {
-            handleEat(it, i);
-        } else if (it.y > h + 50) G.items.splice(i, 1);
+        if (Math.sqrt((it.x - G.mouth.x)**2 + (it.y - G.mouth.y)**2) < CFG.eatDist && G.mouth.open) { handleEat(it, i); }
+        else if (it.y > h + 50) G.items.splice(i, 1);
     }
     animId = requestAnimationFrame(gameLoop);
 }
@@ -235,11 +222,13 @@ function spawnItem() {
 function handleEat(item, idx) {
     if (item.type === 'c') {
         G.items = []; G.pendingItem = item; G.playing = false; cancelAnimationFrame(animId);
-        G.score += 5; showToast(`เลือกถูก! +5`, 'green');
+        G.score += 5; G.wrongCount = 0; // รีเซ็ตตัวนับเมื่อเริ่มข้อใหม่
+        showToast(`เลือกถูก! +5`, 'green');
         document.getElementById('screen-speech').classList.remove('hidden');
         document.getElementById('screen-speech').classList.add('flex');
         document.getElementById('sp-word').innerText = item.text;
         document.getElementById('sp-reading').innerText = `(${QUESTIONS[G.qIdx].p})`;
+        document.getElementById('sp-reading').classList.add('invisible'); // ซ่อนคำอ่านไว้ก่อน
         document.getElementById('sp-meaning').innerText = QUESTIONS[G.qIdx].m;
         updateHUD(); resetMicUI();
     } else {
@@ -248,7 +237,6 @@ function handleEat(item, idx) {
     }
 }
 
-// --- ระบบเสียง ---
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 
@@ -263,14 +251,23 @@ function startSpeechTask() {
     document.getElementById('mic-btn').classList.add('mic-listening');
     document.getElementById('mic-icon').innerText = "🛑";
     document.getElementById('sp-status').innerText = "กำลังฟัง...";
-    
     recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.onresult = (e) => {
         const spoken = e.results[0][0].transcript.toLowerCase();
         const target = G.pendingItem.text.toLowerCase();
-        if (spoken.includes(target) || spoken.slice(0,2) === target.slice(0,2)) endSpeech(true);
-        else document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}"...`;
+        // เช็คคำตอบ
+        if (spoken.includes(target) || spoken.slice(0,2) === target.slice(0,2)) {
+            endSpeech(true);
+        } else {
+            G.wrongCount++; // พูดผิดนับเพิ่ม 1
+            document.getElementById('sp-status').innerText = `ได้ยินว่า: "${spoken}" (ลองใหม่นะ)`;
+            // ถ้าผิดครบ 3 ครั้ง ให้แสดงคำอ่าน
+            if (G.wrongCount >= 3) {
+                document.getElementById('sp-reading').classList.remove('invisible');
+                showToast(`ดูคำอ่านช่วยได้นะ!`, 'green');
+            }
+        }
     };
     recognition.onend = resetMicUI;
     recognition.start();
@@ -285,13 +282,8 @@ function resetMicUI() {
 function endSpeech(success) {
     document.getElementById('screen-speech').classList.add('hidden');
     document.getElementById('screen-speech').classList.remove('flex');
-    if (success) { 
-        G.score += 5; 
-        showToast(`ยอดเยี่ยม! +5`, 'green'); 
-    } else { 
-        G.score = Math.max(0, G.score - 2); // เปลี่ยนจาก -5 เป็น -2 ตรงนี้ครับ
-        showToast(`ข้าม... -2`, 'red'); 
-    }
+    if (success) { G.score += 5; showToast(`ยอดเยี่ยม! +5`, 'green'); } 
+    else { G.score = Math.max(0, G.score - 2); showToast(`ข้าม... -2`, 'red'); }
     if (++G.qIdx >= QUESTIONS.length) finishGame();
     else { G.playing = true; loadLevel(); gameLoop(); }
 }
