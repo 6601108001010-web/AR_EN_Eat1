@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>AR English Eat - Professional Edition</title>
+    <title>AR English Eat - Student Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -41,7 +41,7 @@
 
         <div id="screen-login" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col justify-center items-center p-6 text-center">
             <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-8 uppercase tracking-tighter">AR English Eat</h1>
-            <div class="glass p-8 rounded-3xl w-full max-sm space-y-4 pointer-events-auto">
+            <div class="glass p-8 rounded-3xl w-full max-w-sm space-y-4 pointer-events-auto">
                 <input type="text" id="inp-name" class="w-full bg-gray-800 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="ชื่อเล่น">
                 <input type="number" id="inp-num" class="w-full bg-gray-800 border border-gray-600 rounded-xl p-3 text-white outline-none" placeholder="เลขที่">
                 <button onclick="showRules()" class="w-full btn-game py-4 rounded-xl font-bold text-lg">🚀 เริ่มเกม</button>
@@ -61,7 +61,7 @@
         </div>
 
         <div id="countdown-layer" class="absolute inset-0 z-[70] hidden flex items-center justify-center bg-black/60">
-            <div id="countdown" class="text-9xl font-black italic text-white shadow-2xl">3</div>
+            <div id="countdown" class="text-9xl font-black italic text-white">3</div>
         </div>
 
         <div id="screen-speech" class="absolute inset-0 bg-black/95 z-30 hidden flex-col justify-center items-center text-center p-6 backdrop-blur-xl">
@@ -92,20 +92,20 @@
     </div>
 
 <script>
-// --- CONFIG & DATA ---
 const API_URL = "https://script.google.com/macros/s/AKfycbwrdNIBNWMhLCMaGEbqCif5Ic3IO5W2PDrESxW5oAFW8iLYZIExjeIFsttkiqprcPE/exec";
 
+// โจทย์ดึงมาจากสเปรดชีตของคุณครู (อัปเดตใหม่)
 const QUESTIONS = [
-    { q: "A boy ______ a book.", c: "reads", w: ["read", "reading"], m: "อ่าน", p: "รีดส์ (เสียง สึ ท้ายคำ)" },
-    { q: "A cat ______ on the sofa.", c: "sleeps", w: ["sleep", "sleeping"], m: "นอน", p: "สลีปส์ (เสียง สึ ท้ายคำ)" },
-    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "บิน", p: "ฟลาย" },
-    { q: "He ______ to the radio.", c: "listens", w: ["listen", "listening"], m: "ฟัง", p: "ลิสเซินส์ (เสียง สึ ท้ายคำ)" },
-    { q: "We ______ to the park.", c: "walk", w: ["walks", "walking"], m: "เดิน", p: "วอล์ค (เสียง คือ เบาๆ)" },
-    { q: "A rabbit ______ very fast.", c: "runs", w: ["run", "running"], m: "วิ่ง", p: "รันส์ (เสียง สึ ท้ายคำ)" },
-    { q: "Teachers ______ students.", c: "help", w: ["helps", "helping"], m: "ช่วยเหลือ", p: "เฮลป์ (เสียง พึ เบาๆ)" },
-    { q: "She ______ a beautiful song.", c: "sings", w: ["sing", "singing"], m: "ร้องเพลง", p: "ซิงส์ (เสียง สึ ท้ายคำ)" },
-    { q: "Water ______ at 100°C.", c: "boils", w: ["boil", "boiling"], m: "เดือด", p: "บอยล์ส (เสียง สึ ท้ายคำ)" },
-    { q: "You ______ very kind today.", c: "look", w: ["looks", "looking"], m: "ดูเหมือน", p: "ลุ้ค (เสียง คือ เบาๆ)" }
+    { q: "A boy ______ a book before bed.", c: "reads", w: ["read", "reading"], m: "เด็กชายอ่านหนังสือ", p: "รีดส์ (เสียง สึ ท้ายคำ)" },
+    { q: "The sun ______ in the morning.", c: "shines", w: ["shine", "shining"], m: "ดวงอาทิตย์ส่องแสง", p: "ไชน์ส (เสียง สึ ท้ายคำ)" },
+    { q: "Birds ______ in the sky.", c: "fly", w: ["flies", "flying"], m: "นกบิน", p: "ฟลาย" },
+    { q: "We ______ to the park on Sundays.", c: "walk", w: ["walks", "walking"], m: "พวกเราเดินไปสวนฯ", p: "วอล์ค (เสียง คือ เบาๆ)" },
+    { q: "A rabbit ______ very fast.", c: "runs", w: ["run", "running"], m: "กระต่ายวิ่งเร็ว", p: "รันส์ (เสียง สึ ท้ายคำ)" },
+    { q: "Teachers ______ the students.", c: "help", w: ["helps", "helping"], m: "คุณครูช่วยเหลือความนักเรียน", p: "เฮลป์ (เสียง พึ เบาๆ)" },
+    { q: "She ______ a beautiful song.", c: "sings", w: ["sing", "singing"], m: "เธอร้องเพลง", p: "ซิงส์ (เสียง สึ ท้ายคำ)" },
+    { q: "The water ______ at 100 degrees.", c: "boils", w: ["boil", "boiling"], m: "น้ำเดือดที่ 100 องศา", p: "บอยล์ส (เสียง สึ ท้ายคำ)" },
+    { q: "You ______ very kind today.", c: "look", w: ["looks", "looking"], m: "คุณดูใจดีจังวันนี้", p: "ลุ้ค (เสียง คือ เบาๆ)" },
+    { q: "They ______ football together.", c: "play", w: ["plays", "playing"], m: "พวกเขาเล่นฟุตบอล", p: "เพลย์" }
 ];
 
 const CFG = { gravity: 1.6, spawnRate: 110, eatDist: 95, mouthThresh: 0.05 };
@@ -116,12 +116,12 @@ window.G = {
     wrongCount: 0, passedWords: [], skippedWords: []
 };
 
-// --- AUDIO & SPEECH FUNCTIONS ---
+// --- เสียงและคำพูด ---
 function playTargetVoice() {
     if (!G.pendingItem) return;
     const msg = new SpeechSynthesisUtterance(G.pendingItem.text);
     msg.lang = 'en-US';
-    msg.rate = 0.7; // พูดช้าลงเล็กน้อยให้ฟังง่าย
+    msg.rate = 0.7;
     window.speechSynthesis.speak(msg);
 }
 
@@ -136,25 +136,31 @@ function playSound(freq, type = 'sine', vol = 0.1) {
     osc.start(); osc.stop(audioCtx.currentTime + 0.2);
 }
 
+// --- บันทึกข้อมูล ---
 async function sendData() {
     const payload = {
-        name: G.user.name, number: G.user.number,
-        passed: G.passedWords.join(", "), skipped: G.skippedWords.join(", "), score: G.score
+        name: G.user.name, 
+        number: G.user.number,
+        passed: G.passedWords.join(", "), 
+        skipped: G.skippedWords.join(", "), 
+        score: G.score
     };
     try {
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        document.getElementById('save-status').innerText = "✅ บันทึกคะแนนสำเร็จ!";
-    } catch(e) { document.getElementById('save-status').innerText = "❌ บันทึกไม่สำเร็จ"; }
+        document.getElementById('save-status').innerText = "✅ บันทึกคะแนนเข้า Google Sheets แล้ว!";
+    } catch(e) { 
+        document.getElementById('save-status').innerText = "❌ บันทึกไม่สำเร็จ (ตรวจสอบ URL หรือเน็ต)"; 
+    }
 }
 
-// --- CORE GAME ENGINE ---
+// --- Face Detection & Camera ---
 let lastCameraFrame = null, camReady = false, animId = null;
 const ctx = document.getElementById('output-canvas').getContext('2d');
 const videoElement = document.getElementById('input_video');
 
 function showRules() {
     const name = document.getElementById('inp-name').value.trim();
-    if (!name) return alert("กรุณากรอกชื่อเล่น");
+    if (!name) return alert("กรุณากรอกชื่อ");
     G.user = { name, number: document.getElementById('inp-num').value.trim() };
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-rules').classList.remove('hidden');
@@ -206,7 +212,6 @@ function gameLoop() {
     if (lastCameraFrame) ctx.drawImage(lastCameraFrame, 0, 0, w, h);
     ctx.restore();
 
-    // ปาก AR
     ctx.beginPath(); ctx.arc(G.mouth.x, G.mouth.y, G.mouth.open ? 35 : 15, 0, Math.PI * 2);
     ctx.lineWidth = 5; ctx.strokeStyle = G.mouth.open ? '#4ade80' : '#f472b6'; ctx.stroke();
 
@@ -241,16 +246,12 @@ function handleEat(item, idx) {
     if (item.type === 'c') {
         playSound(660); G.items = []; G.pendingItem = item; G.playing = false; cancelAnimationFrame(animId);
         G.score += 5; G.wrongCount = 0; 
-        
         document.getElementById('screen-speech').classList.replace('hidden', 'flex');
         document.getElementById('sp-word').innerText = item.text;
         document.getElementById('sp-meaning').innerText = QUESTIONS[G.qIdx].m;
         document.getElementById('sp-reading').innerText = QUESTIONS[G.qIdx].p;
-        
-        // รีเซ็ตตัวช่วยตอนเริ่มคำใหม่
         document.getElementById('sp-reading').classList.add('invisible');
         document.getElementById('btn-speaker').classList.add('invisible');
-        
         updateHUD(); resetMicUI();
     } else {
         playSound(220, 'square'); G.items.splice(idx, 1); G.score = Math.max(0, G.score - 5); updateHUD();
@@ -276,26 +277,18 @@ function startSpeechTask() {
         const target = G.pendingItem.text.toLowerCase();
         const results = Array.from(e.results[0]).map(res => res.transcript.toLowerCase().replace(/[^a-z]/g, ''));
         
-        // ยืดหยุ่นสูงสุด: เช็คความคล้ายคลึงของเสียง
         const isMatch = results.some(spoken => 
-            spoken.includes(target) || 
-            (target.length > 3 && spoken.includes(target.slice(0, -1))) ||
-            (target.endsWith('s') && spoken.endsWith('s'))
+            spoken.includes(target) || (target.length > 3 && spoken.includes(target.slice(0, -1))) || (target.endsWith('s') && spoken.endsWith('s'))
         );
 
         if (isMatch) {
             playSound(880); endSpeech(true);
         } else {
             playSound(330, 'triangle'); G.wrongCount++;
-            
-            // ผิด 3 ครั้ง: โชว์คำอ่าน
-            if (G.wrongCount >= 3) {
-                document.getElementById('sp-reading').classList.remove('invisible');
-            }
-            // ผิด 5 ครั้ง: โชว์ปุ่มลำโพง
+            if (G.wrongCount >= 3) document.getElementById('sp-reading').classList.remove('invisible');
             if (G.wrongCount >= 5) {
                 document.getElementById('btn-speaker').classList.remove('invisible');
-                document.getElementById('sp-status').innerText = "พยายามได้ดีมาก! ลองกดปุ่ม 🔊 ฟังเสียงดูนะ";
+                document.getElementById('sp-status').innerText = "ลองฟังเสียงตัวอย่างนะ 🔊";
             } else {
                 document.getElementById('sp-status').innerText = `ลองอีกครั้ง (พยายามไป ${G.wrongCount} ครั้ง)`;
             }
@@ -311,7 +304,6 @@ function endSpeech(success) {
     document.getElementById('screen-speech').classList.replace('flex', 'hidden');
     if (success) { G.score += 5; G.passedWords.push(G.pendingItem.text); showToast(`Correct! +5`, 'green'); } 
     else { G.score = Math.max(0, G.score - 2); G.skippedWords.push(G.pendingItem.text); showToast(`Skipped -2`, 'red'); }
-    
     if (++G.qIdx >= QUESTIONS.length) finishGame();
     else { G.playing = true; loadLevel(); gameLoop(); }
 }
